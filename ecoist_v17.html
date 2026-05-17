@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ecoist</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ── DESIGN SYSTEM ── */
+:root{
+  --bg:#F1F5F2;
+  --card:#FFFFFF;
+  --dark:#1A3D2B;
+  --mid:#2D6A4F;
+  --accent:#3CB371;
+  --light:#E6F0EB;
+  --pale:#C8DFD1;
+  --paler:#EBF4EE;
+  --txt:#111C16;
+  --sub:#728C7E;
+  --pink:#D4607A;
+  --gold:#C8902A;
+  --border:rgba(26,61,43,.07);
+  --sh:0 1px 3px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06);
+  --sh-sm:0 1px 2px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.05);
+  --radius:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--txt);overflow:hidden}
+button,label{cursor:pointer;font-family:inherit;border:none;background:none;padding:0}
+input{font-family:inherit;outline:none;border:none}
+
+/* ── SHELL ── */
+.shell{width:100%;max-width:430px;height:100vh;margin:0 auto;position:relative;overflow:hidden;background:var(--bg)}
+.screen{display:none;flex-direction:column;height:100%;overflow:hidden;background:var(--bg)}
+.screen.active{display:flex}
+.scr{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 100px;scrollbar-width:none}
+.scr::-webkit-scrollbar{display:none}
+
+/* ── HEADER ── */
+.hdr{padding:56px 20px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.logo{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:var(--dark);letter-spacing:-.3px}
+.logo span{color:var(--accent)}
+.hdr-r{display:flex;gap:6px;align-items:center}
+.pill{display:flex;align-items:center;gap:4px;background:var(--card);border-radius:999px;padding:6px 13px 6px 10px;font-size:12px;font-weight:700;color:var(--dark);box-shadow:var(--sh-sm);border:1px solid var(--border)}
+.ico-btn{width:36px;height:36px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:var(--sh-sm);border:1px solid var(--border);position:relative;flex-shrink:0;cursor:pointer}
+.dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--pink);border:1.5px solid var(--card)}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--sh)}
+.card-dk{background:linear-gradient(140deg,var(--dark) 0%,var(--mid) 100%);border-radius:var(--radius);padding:22px;position:relative;overflow:hidden;color:#fff;box-shadow:0 4px 20px rgba(26,61,43,.25)}
+.card-dk::before{content:'';position:absolute;width:200px;height:200px;border-radius:50%;top:-80px;right:-60px;background:rgba(255,255,255,.05);pointer-events:none}
+.card-dk::after{content:'';position:absolute;width:100px;height:100px;border-radius:50%;bottom:-30px;left:-20px;background:rgba(255,255,255,.04);pointer-events:none}
+.card-lt{background:var(--light);border-radius:14px;padding:12px 14px}
+
+/* ── TYPE ── */
+.n-xl{font-family:'Plus Jakarta Sans',sans-serif;font-size:44px;font-weight:800;line-height:1;letter-spacing:-2px}
+.n-lg{font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:800;line-height:1;letter-spacing:-1px}
+.n-md{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:700;line-height:1}
+.lbl-w{font-size:10px;font-weight:600;color:rgba(255,255,255,.55);letter-spacing:1px;text-transform:uppercase}
+.tag{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:4px 11px;font-size:10px;font-weight:700;letter-spacing:.2px}
+.tag-g{background:var(--pale);color:var(--dark)}
+.tag-w{background:rgba(255,255,255,.15);color:rgba(255,255,255,.9)}
+.tag-o{background:#FFF0CC;color:#9B6D00}
+
+/* ── PROGRESS ── */
+.prog{background:rgba(26,61,43,.08);border-radius:999px;height:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),#6FCF97);transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* ── NAV ── */
+.bnav{position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.6);display:flex;justify-content:space-around;align-items:center;padding:8px 4px 28px;z-index:100}
+.bnt{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9px;font-weight:600;color:var(--sub);padding:4px 8px;min-width:48px;transition:color .2s;background:none;border:none;cursor:pointer;letter-spacing:.2px}
+.bnt.on{color:var(--dark)}
+.bnt .ico{width:22px;height:22px;transition:transform .2s;display:flex;align-items:center;justify-content:center}
+.bnt.on .ico{transform:scale(1.08)}
+.bnt .ico svg{width:22px;height:22px}
+.bnt.on .ico svg path,.bnt.on .ico svg rect,.bnt.on .ico svg circle{stroke:var(--dark)}
+.bnt-c{margin-top:-28px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bnt-fab{width:54px;height:54px;border-radius:999px;background:linear-gradient(135deg,var(--accent),var(--mid));display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(44,163,113,.4),0 0 0 3px var(--bg);transition:transform .2s,box-shadow .2s;border:none;cursor:pointer}
+.bnt-fab:active{transform:scale(.92);box-shadow:0 2px 10px rgba(44,163,113,.3),0 0 0 3px var(--bg)}
+.bnt-fab svg{width:22px;height:22px}
+.bnt-fab-l{font-size:9px;font-weight:700;color:var(--dark);letter-spacing:.3px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:14px;padding:14px 24px;font-size:14px;font-weight:700;font-family:inherit;border:none;cursor:pointer;transition:all .2s cubic-bezier(.4,0,.2,1)}
+.btn-dk{background:var(--dark);color:#fff;box-shadow:0 4px 16px rgba(26,61,43,.3)}
+.btn-dk:active{transform:scale(.97);box-shadow:0 2px 8px rgba(26,61,43,.2)}
+.btn-lt{background:var(--light);color:var(--dark)}
+.btn-lt:active{background:var(--pale)}
+.btn-s{padding:8px 16px;font-size:12px;border-radius:10px}
+.btn-pink{background:var(--pink);color:#fff;box-shadow:0 4px 14px rgba(212,96,122,.28)}
+.btn-accent{background:var(--accent);color:#fff;box-shadow:0 4px 16px rgba(60,179,113,.3)}
+
+/* ── FORM ── */
+.fi{width:100%;background:var(--light);border-radius:12px;padding:14px 16px;font-size:15px;color:var(--txt);border:1.5px solid transparent;transition:border-color .2s,background .2s}
+.fi:focus{border-color:var(--accent);background:#fff}
+.fl{display:block;font-size:11px;font-weight:700;color:var(--sub);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase}
+
+/* ── MISC ── */
+.triv{background:var(--paler);border-radius:12px;border-bottom-left-radius:3px;padding:10px 13px;display:flex;gap:9px;align-items:flex-start;font-size:11px;color:var(--dark);font-weight:500;line-height:1.65;position:relative}
+.triv::after{content:'';position:absolute;bottom:-7px;left:14px;border:7px solid transparent;border-top-color:var(--paler);border-bottom:none;border-right:none}
+.tree-w{display:flex;justify-content:center;margin:8px 0}
+.tree-i{position:relative;width:100px;height:100px;display:flex;align-items:center;justify-content:center}
+.tree-g{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(60,179,113,.15),transparent 70%);animation:glw 3s ease-in-out infinite}
+.tree-svg{animation:bob 3s ease-in-out infinite;filter:drop-shadow(0 6px 14px rgba(26,61,43,.2))}
+
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes glw{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(60,179,113,.3)}70%{box-shadow:0 0 0 20px rgba(60,179,113,0)}}
+@keyframes up{0%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-70px) scale(1.4)}}
+@keyframes sin{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes lvup{0%{transform:scale(.75);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes slideup{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+.a-bob{animation:bob 3s ease-in-out infinite}
+.a-blink{animation:blink 1.6s ease-in-out infinite}
+.a-pulse{animation:pulse 2.5s ease-in-out infinite}
+.a-sin{animation:sin .3s cubic-bezier(.34,1.56,.64,1)}
+.a-fade{animation:fade .25s ease-out}
+.a-lvup{animation:lvup .5s cubic-bezier(.34,1.56,.64,1)}
+
+.conn{background:rgba(60,179,113,.1);border:1px solid rgba(60,179,113,.2);border-radius:999px;padding:7px 14px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:11px;color:var(--mid);font-weight:600}
+.conn-d{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.duo-c{background:var(--light);border-radius:14px;padding:14px 10px;text-align:center}
+.duo-v{font-family:'Plus Jakarta Sans',sans-serif;font-size:19px;font-weight:800;color:var(--dark);line-height:1}
+.duo-u{font-size:10px;color:var(--sub);margin-top:2px}
+.duo-l{font-size:10px;color:var(--txt);font-weight:600;margin-top:3px}
+.meta-btn{width:100%;background:var(--paler);border:1px dashed var(--pale);border-radius:12px;padding:12px 15px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .2s;font-family:inherit}
+.meta-btn:active{background:var(--pale)}
+.meta-panel{background:var(--paler);border-radius:12px;padding:10px;display:none;flex-direction:column;gap:6px;margin-top:6px}
+.meta-panel.open{display:flex}
+.meta-row{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:10px;padding:10px 12px}
+.meta-e2{font-size:20px;flex-shrink:0}
+.meta-n2{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;color:var(--dark)}
+.meta-d2{font-size:11px;color:var(--sub);margin-top:1px}
+.quest{background:linear-gradient(135deg,#FFFBEC,#FFF4CC);border:1px solid #F0CC60;border-radius:16px;padding:13px 15px;display:flex;align-items:center;gap:12px}
+.qt{font-size:10px;font-weight:700;color:#9B6D00;margin-bottom:3px;letter-spacing:.3px;text-transform:uppercase}
+.ptabs{display:flex;background:var(--light);border-radius:999px;padding:3px;gap:2px}
+.ptb{background:transparent;color:var(--sub);font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;transition:all .2s;border:none;cursor:pointer;font-family:inherit}
+.ptb.on{background:var(--card);color:var(--dark);box-shadow:var(--sh-sm)}
+.act-r{background:var(--card);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh-sm);border:1px solid var(--border)}
+.act-i{width:40px;height:40px;border-radius:12px;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.act-p{font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:800;color:var(--accent);margin-left:auto;flex-shrink:0}
+.cat-tabs{display:flex;background:var(--light);border-radius:999px;padding:3px;gap:2px}
+.catb{flex:1;background:transparent;color:var(--sub);font-size:12px;font-weight:700;padding:8px 4px;border-radius:999px;transition:all .2s;border:none;cursor:pointer;font-family:inherit;text-align:center}
+.catb.on{background:var(--card);color:var(--dark);box-shadow:var(--sh-sm)}
+.tm-card{background:linear-gradient(135deg,var(--dark),var(--mid));border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(26,61,43,.25)}
+.tm-card::before{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none}
+.vid-btn{background:linear-gradient(135deg,#B03060,var(--pink));border-radius:16px;padding:14px 17px;display:flex;align-items:center;gap:11px;width:100%;border:none;cursor:pointer;font-family:inherit;transition:transform .2s;box-shadow:0 6px 18px rgba(180,60,100,.25)}
+.vid-btn:active{transform:scale(.97)}
+.pod-row{display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:14px 10px 4px}
+.pod{display:flex;flex-direction:column;align-items:center;gap:4px}
+.pod-av{border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.pod-nm{font-size:11px;font-weight:700;color:var(--txt);text-align:center;max-width:66px;line-height:1.3}
+.pod-vl{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:800;color:var(--dark)}
+.pod-bar{border-radius:8px 8px 0 0}
+.rk-r{background:var(--card);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh-sm);border:1px solid var(--border)}
+.rk-r.me{background:linear-gradient(135deg,#EBF9F2,#E0F4EA);border-color:rgba(60,179,113,.2)}
+.rk-n{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:800;color:var(--sub);width:20px;text-align:center;flex-shrink:0}
+.rk-av{width:36px;height:36px;border-radius:12px;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.rk-nm{font-size:13px;font-weight:700;color:var(--txt);flex:1}
+.you{font-size:9px;background:var(--accent);color:#fff;padding:2px 7px;border-radius:999px;margin-left:4px;font-weight:700;vertical-align:middle}
+.rk-vl{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:800;color:var(--dark)}
+
+/* ── MYPAGE ── */
+.myp-h{background:linear-gradient(150deg,var(--dark) 0%,#2A5F46 60%,var(--mid) 100%);padding:60px 20px 28px;position:relative;overflow:hidden;text-align:center}
+.myp-h::before{content:'';position:absolute;top:-80px;right:-80px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none}
+.myp-h::after{content:'';position:absolute;bottom:-40px;left:-40px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.03);pointer-events:none}
+.myp-gear{position:absolute;top:60px;right:18px;width:34px;height:34px;background:rgba(255,255,255,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;border:none;backdrop-filter:blur(4px)}
+.myp-av-wrap{width:80px;height:80px;border-radius:999px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.35);margin:0 auto 12px;position:relative;cursor:pointer}
+.myp-av-inner{width:100%;height:100%;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:38px;overflow:hidden}
+.myp-av-inner img{width:100%;height:100%;object-fit:cover;border-radius:999px}
+.myp-av-edit{position:absolute;bottom:0;right:-2px;width:22px;height:22px;background:var(--accent);border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:9px;border:2px solid var(--mid)}
+.lv-bar-wrap{background:rgba(255,255,255,.14);border-radius:999px;height:4px;overflow:hidden;margin-top:9px}
+.lv-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,rgba(255,255,255,.7),rgba(255,255,255,.95));transition:width .6s cubic-bezier(.4,0,.2,1)}
+.stats-g{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.st-c{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--sh-sm)}
+.st-v{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:var(--dark)}
+.st-l{font-size:11px;color:var(--sub);margin-top:3px;font-weight:500}
+
+/* ── ZK (TREE ENCYCLOPEDIA) ── */
+.zk-g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.zk{background:var(--card);border-radius:16px;padding:12px 8px;text-align:center;transition:all .2s;position:relative;overflow:hidden;border:1px solid var(--border)}
+.zk.unlocked{cursor:pointer}
+.zk.unlocked:active{transform:scale(.96);background:var(--light)}
+.zk.lk{opacity:.3;cursor:default;filter:grayscale(1)}
+.zk-char{height:72px;display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+.zk-lv{font-size:9px;font-weight:700;color:var(--mid);background:var(--paler);border-radius:999px;padding:2px 8px;display:inline-block;margin-bottom:4px}
+.zk-nm{font-size:11px;color:var(--txt);font-weight:700;line-height:1.3}
+.zk-unlocked-badge{position:absolute;top:8px;right:8px;width:16px;height:16px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center}
+
+/* ── BADGES ── */
+.bdg-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.bdg-row::-webkit-scrollbar{display:none}
+.bdg{background:var(--card);border-radius:14px;padding:11px 10px;text-align:center;min-width:72px;flex-shrink:0;cursor:pointer;transition:all .2s;position:relative;border:1px solid var(--border)}
+.bdg:active{transform:scale(.95)}
+.bdg.lk{opacity:.25;cursor:default;filter:grayscale(1)}
+.bdg.earned{background:linear-gradient(135deg,#EDFAF2,#E0F5E9);border-color:rgba(60,179,113,.25)}
+.bdg.claimed{background:var(--light);border-color:var(--border);cursor:pointer}
+.bdg-new-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--pink);border:1.5px solid var(--card)}
+.pex{background:var(--card);border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--sh-sm)}
+.menu-l{background:var(--card);border-radius:16px;overflow:hidden;box-shadow:var(--sh-sm)}
+.mi{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--light);font-size:13px;color:var(--txt);cursor:pointer;transition:background .15s}
+.mi:last-child{border-bottom:none}
+.mi:active{background:var(--light)}
+.mi-i{width:30px;height:30px;border-radius:10px;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:14px;margin-right:10px;flex-shrink:0}
+.mi.dng{color:var(--pink)}
+.mi.dng .mi-i{background:#FDEAEE}
+
+/* ── SCAN ── */
+.sc-circle{width:150px;height:150px;border-radius:999px;background:var(--paler);border:2px dashed rgba(60,179,113,.4);display:flex;align-items:center;justify-content:center;font-size:52px;flex-shrink:0;box-shadow:0 0 0 8px rgba(60,179,113,.06)}
+.sc-step-d{width:28px;height:28px;border-radius:999px;background:var(--dark);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 6px}
+.lim-wrap{padding:0 16px 10px;flex-shrink:0}
+.lim-card{background:var(--card);border-radius:14px;padding:12px 14px;box-shadow:var(--sh-sm)}
+
+/* ── VIDEO BONUS ── */
+.scan-vid-banner{background:linear-gradient(135deg,#A02050,var(--pink));border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;width:100%;cursor:pointer;transition:transform .2s;border:none;font-family:inherit;box-shadow:0 6px 18px rgba(180,60,100,.25)}
+.scan-vid-banner:active{transform:scale(.97)}
+
+/* ── AVATAR ── */
+.av-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}
+.av-item{aspect-ratio:1;border-radius:14px;border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;transition:all .2s;background:var(--light)}
+.av-item.sel{border-color:var(--accent);background:rgba(60,179,113,.1)}
+.av-item:active{transform:scale(.92)}
+
+/* ── MODALS ── */
+.overlay{position:absolute;inset:0;background:rgba(8,18,12,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+.overlay.ctr{align-items:center;padding:0 16px}
+.sheet{background:var(--card);border-radius:24px 24px 0 0;width:100%;max-height:88vh;overflow-y:auto;padding:18px 18px 28px;-webkit-overflow-scrolling:touch}
+.sheet.ctr{border-radius:22px;max-height:86vh;padding:24px 20px 28px}
+.hdl{width:32px;height:3px;background:var(--pale);border-radius:999px;margin:0 auto 16px}
+.s-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:999px;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--sub);cursor:pointer;border:none}
+.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-hd{text-align:center;font-size:10px;font-weight:700;color:var(--sub);padding:3px 0}
+.cal-d{aspect-ratio:1;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--sub);background:none;border:none;cursor:pointer;transition:all .15s;font-family:inherit;position:relative}
+.cal-d.has{color:var(--dark);font-weight:700}
+.cal-d.has::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent)}
+.cal-d.tod{background:var(--dark);color:#fff;font-weight:700}
+.cal-d.tod::after{display:none}
+.vid-m{background:#080E0A;border-radius:14px;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:38px;position:relative;overflow:hidden;margin-bottom:14px}
+.vid-p{position:absolute;bottom:0;left:0;height:3px;background:var(--accent);transition:width .08s linear}
+.toast{position:absolute;bottom:100px;left:50%;transform:translateX(-50%) translateY(14px);background:rgba(17,28,22,.92);backdrop-filter:blur(8px);color:#fff;padding:10px 22px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:all .28s cubic-bezier(.4,0,.2,1);pointer-events:none;z-index:500;white-space:nowrap}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.fpt{position:absolute;top:37%;left:50%;transform:translateX(-50%);font-family:'Plus Jakarta Sans',sans-serif;font-size:42px;font-weight:800;color:var(--accent);pointer-events:none;z-index:600;opacity:0}
+.fpt.go{animation:up 1.2s ease-out forwards}
+.tog{width:42px;height:24px;border-radius:999px;position:relative;transition:background .25s;cursor:pointer;border:none;flex-shrink:0}
+.tog.on{background:var(--accent)}
+.tog.off{background:#BDD0C6}
+.tog-k{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;transition:left .25s cubic-bezier(.34,1.56,.64,1);box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.tog.on .tog-k{left:21px}
+.tog.off .tog-k{left:3px}
+.zk-book-btn{width:100%;background:var(--card);border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s;font-family:inherit;border:none;box-shadow:var(--sh-sm)}
+.zk-book-btn:active{background:var(--light)}
+
+/* ── MAP ── */
+#map-iframe{width:100%;height:100%;border:none}
+.map-screen{background:#EBF4EE}
+
+/* ── LOGIN SCREEN ── */
+.login-bg{position:absolute;inset:0;background:linear-gradient(170deg,#0E2A1C 0%,#1A3D2B 45%,#123022 100%)}
+.login-wave{position:absolute;bottom:0;left:0;right:0}
+.social-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;border-radius:14px;padding:14px;font-size:14px;font-weight:700;font-family:inherit;border:none;cursor:pointer;transition:all .2s}
+.social-btn:active{transform:scale(.97)}
+
+/* ── SECTION TITLES ── */
+.sec-ttl{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.sec-ttl-sub{font-size:11px;color:var(--sub);font-weight:500}
+</style>
+</head>
+<body>
+<div class="shell" id="app">
+<div class="toast" id="toast"></div>
+<div class="fpt" id="fpt"></div>
+
+<!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
+<div class="screen active" id="screen-register" style="position:relative;overflow:hidden">
+  <div class="login-bg"></div>
+  <!-- decorative blobs -->
+  <div style="position:absolute;top:-100px;right:-80px;width:280px;height:280px;border-radius:50%;background:rgba(60,179,113,.08)"></div>
+  <div style="position:absolute;top:100px;left:-80px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.03)"></div>
+  <div style="position:absolute;bottom:200px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(60,179,113,.05)"></div>
+
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%">
+    <!-- Top hero -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 28px 20px;text-align:center">
+      <!-- wordmark + mascot -->
+      <div style="margin-bottom:28px">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(60,179,113,.25);display:flex;align-items:center;justify-content:center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+          </div>
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#fff;letter-spacing:-.5px">Eco<span style="color:#6FCF97">ist</span></div>
+        </div>
+        <!-- mascot -->
+        <svg width="110" height="110" viewBox="0 0 100 100" class="a-bob">
+          <ellipse cx="50" cy="62" rx="22" ry="26" fill="#52B788"/>
+          <path d="M50 8 C28 8 20 30 30 46 C36 54 44 58 50 58 C56 58 64 54 70 46 C80 30 72 8 50 8Z" fill="#3A9A6A"/>
+          <path d="M50 10 C50 10 50 55 50 57" stroke="#1A3D2B" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          <path d="M50 22 C44 18 36 20 32 26" stroke="#1A3D2B" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          <path d="M50 33 C56 29 64 31 68 37" stroke="#1A3D2B" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          <circle cx="44" cy="38" r="3.5" fill="#fff"/>
+          <circle cx="56" cy="38" r="3.5" fill="#fff"/>
+          <circle cx="45" cy="38.5" r="2" fill="#1a3d2b"/>
+          <circle cx="57" cy="38.5" r="2" fill="#1a3d2b"/>
+          <circle cx="46" cy="37.5" r=".7" fill="#fff"/>
+          <circle cx="58" cy="37.5" r=".7" fill="#fff"/>
+          <path d="M44 44 Q50 49 56 44" stroke="#1a3d2b" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          <path d="M28 66 Q22 58 26 52" stroke="#52B788" stroke-width="5" stroke-linecap="round" fill="none"/>
+          <path d="M72 66 Q78 58 74 52" stroke="#52B788" stroke-width="5" stroke-linecap="round" fill="none"/>
+          <ellipse cx="42" cy="87" rx="9" ry="5" fill="#3A9A6A"/>
+          <ellipse cx="58" cy="87" rx="9" ry="5" fill="#3A9A6A"/>
+        </svg>
+      </div>
+      <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:800;color:#fff;letter-spacing:-1px;line-height:1.15;margin-bottom:10px">エコをポイ活へ。</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.8;max-width:240px">分別するたびにポイントが貯まる。<br>地球も、財布も、ちょっと得する。</div>
+
+      <!-- perks -->
+      <div style="display:flex;gap:8px;margin-top:24px;width:100%">
+        <div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 8px;text-align:center;flex:1;backdrop-filter:blur(8px)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="1.8" stroke-linecap="round" style="margin-bottom:6px"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <div style="font-size:10px;color:rgba(255,255,255,.75);font-weight:600;line-height:1.4">分別で<br>ポイント</div>
+        </div>
+        <div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 8px;text-align:center;flex:1;backdrop-filter:blur(8px)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="1.8" stroke-linecap="round" style="margin-bottom:6px"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+          <div style="font-size:10px;color:rgba(255,255,255,.75);font-weight:600;line-height:1.4">木を<br>育てる</div>
+        </div>
+        <div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 8px;text-align:center;flex:1;backdrop-filter:blur(8px)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="1.8" stroke-linecap="round" style="margin-bottom:6px"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <div style="font-size:10px;color:rgba(255,255,255,.75);font-weight:600;line-height:1.4">現金に<br>交換</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom login card -->
+    <div style="background:var(--card);border-radius:28px 28px 0 0;padding:26px 22px 40px">
+      <div style="font-size:18px;font-weight:700;margin-bottom:4px;text-align:center">はじめる</div>
+      <div style="font-size:12px;color:var(--sub);margin-bottom:18px;text-align:center">ニックネームを入れるだけで OK</div>
+      <div style="margin-bottom:14px">
+        <label class="fl">ニックネーム</label>
+        <input id="reg-nm" class="fi" type="text" placeholder="エコ太郎" maxlength="20" onkeydown="if(event.key==='Enter')doReg()">
+      </div>
+      <button class="btn btn-dk" style="width:100%;margin-bottom:10px;font-size:15px" onclick="doReg()">
+        登録して 10pt もらう 🎉
+      </button>
+
+      <div style="display:flex;align-items:center;gap:10px;margin:12px 0">
+        <div style="flex:1;height:1px;background:var(--light)"></div>
+        <span style="font-size:11px;color:var(--sub);font-weight:600">または</span>
+        <div style="flex:1;height:1px;background:var(--light)"></div>
+      </div>
+
+      <!-- Social login (Coming Soon) -->
+      <div style="display:flex;gap:9px">
+        <button class="social-btn" style="background:#fff;border:1.5px solid var(--light);color:var(--txt);flex:1;font-size:13px" onclick="comingSoon()">
+          <span style="font-size:18px">G</span> Google
+        </button>
+        <button class="social-btn" style="background:#06C755;color:#fff;flex:1;font-size:13px" onclick="comingSoon()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 5.9 2 10.7c0 2.9 1.6 5.5 4.1 7.2-.2.7-.7 2.5-.8 2.9-.1.5.4.5.6.3.2-.1 2.5-1.7 3.5-2.4.8.1 1.7.2 2.6.2 5.52 0 10-3.9 10-8.7S17.52 2 12 2z"/></svg>
+          LINE
+        </button>
+      </div>
+      <div style="font-size:10px;color:var(--sub);text-align:center;margin-top:14px;line-height:1.7">登録することで利用規約・プライバシーポリシーに同意します</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ HOME ═══════════════ -->
+<div class="screen" id="screen-home">
+  <div class="hdr">
+    <div class="logo"><span>Eco</span>ist</div>
+    <div class="hdr-r">
+      <div class="pill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--accent)" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span id="h-pts-pill">0pt</span>
+      </div>
+      <button class="pill" style="cursor:pointer;background:var(--dark);color:#fff;border:none" onclick="showTab('map')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        マップ
+      </button>
+      <button class="ico-btn" id="badge-bell-btn" onclick="openBadgeNotif()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sub)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="dot" id="badge-bell-dot" style="display:none"></span>
+      </button>
+    </div>
+  </div>
+  <div class="scr" id="home-scr">
+    <div style="display:flex;flex-direction:column;gap:12px;padding-top:4px">
+      <!-- Points card -->
+      <div class="card-dk">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+          <div class="lbl-w">Eco ポイント</div>
+        </div>
+        <div style="display:flex;align-items:flex-end;justify-content:space-between">
+          <div>
+            <div class="n-xl" id="h-pts-card" style="color:#fff">0<span style="font-size:16px;font-weight:600;vertical-align:super;margin-left:2px">pt</span></div>
+            <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:7px;display:flex;align-items:center;gap:5px">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="rgba(255,200,80,.8)" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span id="h-streak">1</span>日連続記録中
+            </div>
+          </div>
+          <button style="background:rgba(255,255,255,.13);color:#fff;border-radius:12px;padding:9px 16px;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,.15);cursor:pointer;backdrop-filter:blur(8px)" onclick="openExch()">交換する →</button>
+        </div>
+      </div>
+
+      <!-- Hero / tree card -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--sub);letter-spacing:.6px;text-transform:uppercase">あなたのエコ貢献</div>
+            <div style="font-size:15px;font-weight:700;margin-top:3px">今月のCO₂削減量</div>
+          </div>
+          <div class="tag tag-g">Lv.<span id="h-lv">1</span></div>
+        </div>
+        <div class="triv" style="margin-bottom:10px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="h-triv" style="font-size:11px"></span>
+        </div>
+        <div class="tree-w"><div class="tree-i"><div class="tree-g"></div><div id="h-tree-svg" class="tree-svg"></div></div></div>
+        <div class="conn" style="margin-bottom:10px"><div class="conn-d a-blink"></div>スマートゴミ箱・アイカサ・Mymizu と連携中</div>
+        <div class="duo" id="h-duo" style="margin-bottom:10px"></div>
+        <button class="meta-btn" onclick="toggleMeta()">
+          <div style="display:flex;align-items:center;gap:8px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div><div style="font-size:13px;font-weight:700;color:var(--dark)">削減量ってどれくらい？</div><div style="font-size:11px;color:var(--sub);margin-top:1px" id="meta-btn-sub">タップして確認する</div></div>
+          </div>
+          <span id="meta-chevron" style="font-size:18px;color:var(--sub);line-height:1">›</span>
+        </button>
+        <div class="meta-panel" id="meta-panel"></div>
+      </div>
+
+      <!-- Quest -->
+      <div class="quest" id="h-quest" onclick="showTab('scan')" style="cursor:pointer">
+        <div style="width:44px;height:44px;border-radius:13px;background:var(--paler);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2h10l2 18H5L7 2z"/><path d="M7 8h10"/></svg></div>
+        <div style="flex:1">
+          <div class="qt">今日のクエスト</div>
+          <div style="font-size:13px;font-weight:700" id="h-quest-title">クエストを読み込み中…</div>
+          <div class="tag tag-o" style="margin-top:7px" id="h-quest-bonus">ボーナス +20pt</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--sub)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+
+      <!-- Chart -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-size:14px;font-weight:700">貢献量の推移</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <div class="ptabs" id="c-tabs">
+              <button class="ptb on" onclick="setChartP('day',this)">日</button>
+              <button class="ptb" onclick="setChartP('month',this)">月</button>
+              <button class="ptb" onclick="setChartP('year',this)">年</button>
+            </div>
+            <button class="ico-btn" onclick="openCal()" style="width:30px;height:30px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--sub)" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </button>
+          </div>
+        </div>
+        <div style="position:relative;height:114px"><canvas id="myChart"></canvas></div>
+      </div>
+
+      <!-- History -->
+      <div style="padding-bottom:4px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:14px;font-weight:700">最近の活動</span>
+            <span class="tag tag-g">今週</span>
+          </div>
+        </div>
+        <div id="h-hist" style="display:flex;flex-direction:column;gap:7px"></div>
+      </div>
+    </div>
+  </div>
+  <nav class="bnav">
+    <button data-tab="home" class="bnt on" onclick="showTab('home')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>ホーム</button>
+    <button data-tab="ichios" class="bnt" onclick="showTab('ichios')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>イチオシ</button>
+    <div class="bnt-c"><button data-tab="scan" class="bnt-fab" onclick="showTab('scan')"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></button><div class="bnt-fab-l">ためる</div></div>
+    <button data-tab="ranking" class="bnt" onclick="showTab('ranking')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="14" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="13" rx="1"/><rect x="2" y="17" width="4" height="5" rx="1"/><path d="M22 22H2"/></svg></span>ランキング</button>
+    <button data-tab="mypage" class="bnt" onclick="showTab('mypage')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>マイページ</button>
+  </nav>
+</div>
+
+<!-- ═══════════════ SCAN ═══════════════ -->
+<div class="screen" id="screen-scan" style="background:#fff">
+  <div class="hdr" style="background:var(--bg)">
+    <div class="logo"><span>Eco</span>ist</div>
+    <div class="hdr-r">
+      <div class="pill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--accent)" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span id="s-pts-pill">0pt</span>
+      </div>
+    </div>
+  </div>
+  <div id="sq-wrap" style="padding:0 16px 8px;flex-shrink:0">
+    <div class="quest" style="padding:10px 13px">
+      <div style="width:36px;height:36px;border-radius:10px;background:var(--paler);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2h10l2 18H5L7 2z"/><path d="M7 8h10"/></svg></div>
+      <div style="flex:1"><div class="qt"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>今日のクエスト</div><div style="font-size:12px;font-weight:700" id="sq-quest-title">クエストを読み込み中…</div></div>
+      <div class="tag tag-o">+20pt</div>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:0 16px" id="scan-wrap">
+    <!-- idle -->
+    <div id="s-idle" style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:8px 0 14px">
+      <div style="text-align:center">
+        <div style="font-size:17px;font-weight:700;margin-bottom:6px">分別してポイントをためよう</div>
+        <div style="font-size:13px;color:var(--sub);line-height:1.7">カメラでゴミを撮影するだけ。<br>AIが判定して <strong style="color:var(--dark)">2〜4pt</strong> を付与。</div>
+      </div>
+      <div class="sc-circle a-pulse">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+      <div style="display:flex;gap:0;justify-content:center;align-items:center;width:100%;max-width:260px">
+        <div style="text-align:center;flex:1"><div class="sc-step-d">1</div><div style="font-size:11px;color:var(--sub);margin-top:4px">撮影</div></div>
+        <div style="height:1px;flex:0.6;background:var(--pale);margin-bottom:20px"></div>
+        <div style="text-align:center;flex:1"><div class="sc-step-d">2</div><div style="font-size:11px;color:var(--sub);margin-top:4px">AI判定</div></div>
+        <div style="height:1px;flex:0.6;background:var(--pale);margin-bottom:20px"></div>
+        <div style="text-align:center;flex:1"><div class="sc-step-d">3</div><div style="font-size:11px;color:var(--sub);margin-top:4px">ポイント</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+        <button class="btn btn-accent" style="width:100%" id="scan-cam-btn" onclick="startScan()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          カメラを起動する
+        </button>
+        <label class="btn btn-lt" style="width:100%;cursor:pointer">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          ライブラリから選ぶ<input type="file" accept="image/*" style="display:none" onchange="handleLib(this)">
+        </label>
+      </div>
+    </div>
+    <!-- scanning -->
+    <div id="s-scanning" style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:38px 0;text-align:center">
+      <div style="width:88px;height:88px;border-radius:999px;background:var(--paler);display:flex;align-items:center;justify-content:center" class="a-bob">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:4px">AIが判定中...</div>
+        <div style="font-size:12px;color:var(--sub)">少々お待ちください</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <div style="width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink .9s ease-in-out infinite"></div>
+        <div style="width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink .9s ease-in-out .25s infinite"></div>
+        <div style="width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink .9s ease-in-out .5s infinite"></div>
+      </div>
+    </div>
+    <!-- result -->
+    <div id="s-result" style="display:none;flex-direction:column;align-items:center;gap:11px;padding:8px 0 14px">
+      <div style="background:var(--paler);border-radius:20px;padding:20px 18px;text-align:center;width:100%">
+        <div id="r-emoji" style="font-size:50px;margin-bottom:9px">🧴</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">「<span id="r-type">ペットボトル</span>」を検出！</div>
+        <div class="n-lg" id="r-pts" style="color:var(--dark)">+3pt</div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px" id="r-co2">CO₂ 35g 削減</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-top:8px;background:var(--light);border-radius:999px;padding:5px 14px;font-size:11px;font-weight:700;color:var(--dark)">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          捨て先：<span id="r-bin">プラスチック容器ゴミ</span>
+        </div>
+      </div>
+      <div id="r-quest-msg" style="display:none;background:#FFF8E7;border:1px solid #F0C66A;border-radius:14px;padding:10px 14px;width:100%;font-size:12px;font-weight:700;color:#A37B00">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>クエスト対象！ボーナス +20pt が付与されます。
+      </div>
+      <div style="background:var(--light);border-radius:15px;padding:12px 15px;width:100%">
+        <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:4px;display:flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>判定が違う場合は？</div>
+        <div style="font-size:12px;color:var(--sub);margin-bottom:9px;line-height:1.6">再撮影で正確な判定が得られます。</div>
+        <button style="font-size:12px;font-weight:700;color:var(--dark);background:transparent;border:1px solid var(--dark);border-radius:999px;padding:6px 14px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px" onclick="retake()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>再撮影する</button>
+      </div>
+      <!-- ★ 2択ボタン -->
+      <button class="btn btn-lt" style="width:100%;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px" id="r-confirm-btn" onclick="confirmScan()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>そのままポイントをもらう <span id="r-base-pts-lbl" style="color:var(--dark);font-weight:800"></span></button>
+      <button class="scan-vid-banner" id="r-vid-banner" onclick="openScanVid()" style="width:100%">
+        <div style="display:flex;align-items:center;justify-content:center;width:38px;height:38px;background:rgba(255,255,255,.18);border-radius:999px;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+        <div style="flex:1;text-align:left">
+          <div style="font-size:14px;font-weight:700;color:#fff" id="r-vid-pts-txt">動画を見て 2倍ポイントゲット！</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:2px" id="r-vid-sub">（上限6pt）</div>
+        </div>
+        <div style="font-size:18px;color:rgba(255,255,255,.8)">›</div>
+      </button>
+    </div>
+    <!-- limit -->
+    <div id="s-limit" style="display:none;flex-direction:column;align-items:center;gap:15px;padding:38px 0;text-align:center">
+      <div style="font-size:50px">😅</div>
+      <div style="font-size:17px;font-weight:700">本日の上限に達しました</div>
+      <div style="font-size:13px;color:var(--sub);line-height:1.7">1日50回まで記録できます。<br>明日また来てね！</div>
+      <button class="btn btn-dk" onclick="showTab('home')">ホームへ戻る</button>
+    </div>
+  </div>
+  <div class="lim-wrap">
+    <div class="lim-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:11px;font-weight:600;color:var(--sub)">本日のスキャン</span>
+        <span style="font-size:11px;font-weight:700;color:var(--dark)"><span id="s-cnt">0</span>/50 回</span>
+      </div>
+      <div class="prog"><div class="prog-fill" id="s-prog" style="width:0%"></div></div>
+    </div>
+  </div>
+  <nav class="bnav" style="background:rgba(255,255,255,.92)">
+    <button data-tab="home" class="bnt" onclick="showTab('home')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>ホーム</button>
+    <button data-tab="ichios" class="bnt" onclick="showTab('ichios')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>イチオシ</button>
+    <div class="bnt-c"><button data-tab="scan" class="bnt-fab" onclick="showTab('scan')" style="box-shadow:0 6px 20px rgba(60,179,113,.45),0 0 0 3px #fff,0 0 0 5px var(--accent)"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></button><div class="bnt-fab-l">ためる</div></div>
+    <button data-tab="ranking" class="bnt" onclick="showTab('ranking')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="14" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="13" rx="1"/><rect x="2" y="17" width="4" height="5" rx="1"/><path d="M22 22H2"/></svg></span>ランキング</button>
+    <button data-tab="mypage" class="bnt" onclick="showTab('mypage')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>マイページ</button>
+  </nav>
+</div>
+
+<!-- ═══════════════ MAP ═══════════════ -->
+<div class="screen map-screen" id="screen-map">
+  <div class="hdr" style="background:var(--bg);padding-bottom:8px">
+    <div class="logo"><span>Eco</span>ist</div>
+    <div style="font-size:13px;font-weight:700;color:var(--dark);display:flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> スマートゴミ箱マップ</div>
+  </div>
+  <div style="flex:1;position:relative">
+    <iframe id="map-iframe"
+      src="https://www.google.com/maps/embed?pb=!1m16!1m12!1m3!1d52946.1!2d130.4017!3d33.5904!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!2m3!1m2!1s0x354191b0e0c2b7b5%3A0x6d3e6a0d4e8a9f5b!2z56aP5bKh5biC!5e0!3m2!1sja!2sjp!4v1620000000000!5m2!1sja!2sjp"
+      allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+    </iframe>
+    <!-- Map overlay legend -->
+    <div style="position:absolute;bottom:16px;left:16px;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-radius:16px;padding:12px 14px;box-shadow:0 4px 20px rgba(0,0,0,.12)">
+      <div style="font-size:12px;font-weight:700;color:var(--txt);margin-bottom:7px">凡例</div>
+      <div style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--sub);margin-bottom:4px">
+        <div style="width:12px;height:12px;border-radius:50%;background:var(--dark);flex-shrink:0"></div>設置済みゴミ箱
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--sub)">
+        <div style="width:12px;height:12px;border-radius:50%;background:#E8A020;flex-shrink:0"></div>近日設置予定
+      </div>
+    </div>
+    <div style="position:absolute;top:16px;right:16px">
+      <button class="btn btn-dk btn-s" onclick="comingSoon()">+ 申請する</button>
+    </div>
+  </div>
+  <nav class="bnav">
+    <button data-tab="home" class="bnt" onclick="showTab('home')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>ホーム</button>
+    <button data-tab="ichios" class="bnt" onclick="showTab('ichios')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>イチオシ</button>
+    <div class="bnt-c"><button data-tab="scan" class="bnt-fab" onclick="showTab('scan')"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></button><div class="bnt-fab-l">ためる</div></div>
+    <button data-tab="ranking" class="bnt" onclick="showTab('ranking')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="14" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="13" rx="1"/><rect x="2" y="17" width="4" height="5" rx="1"/><path d="M22 22H2"/></svg></span>ランキング</button>
+    <button data-tab="mypage" class="bnt" onclick="showTab('mypage')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>マイページ</button>
+  </nav>
+</div>
+
+<!-- ═══════════════ ICHIOS ═══════════════ -->
+<div class="screen" id="screen-ichios">
+  <div class="hdr"><div class="logo"><span>Eco</span>ist</div><div class="hdr-r"><button class="ico-btn" onclick="openBadgeNotif()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sub)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span class="dot" id="ic-bell-dot" style="display:none"></span></button></div></div>
+  <div class="scr">
+    <div style="display:flex;flex-direction:column;gap:11px;padding-top:4px">
+      <div style="border-radius:22px;overflow:hidden;height:136px;position:relative;cursor:pointer;background:var(--dark)" onclick="comingSoon()">
+        <div style="position:absolute;inset:0;background:linear-gradient(100deg,rgba(10,40,24,.78),rgba(10,40,24,.08));display:flex;flex-direction:column;justify-content:flex-end;padding:13px 15px">
+          <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:3px">楽天証券 — はじめての投資</div>
+          <div class="n-md" style="color:#FFD877;font-size:19px">89,856 <span style="font-size:11px;font-weight:500;color:rgba(255,255,255,.75)">pt</span></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px;font-weight:700">あなたへのおすすめ</span><span class="tag tag-g">無料・高還元</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+        <div style="background:var(--card);border-radius:18px;overflow:hidden;cursor:pointer" onclick="comingSoon()">
+          <div style="height:80px;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:30px">💳</div>
+          <div style="padding:9px 11px">
+            <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;background:#E8F0FE;color:#3367D6;display:inline-block;margin-bottom:3px">クレカ</span>
+            <div style="font-size:12px;font-weight:700;margin-bottom:3px">三井住友カード</div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:800;color:var(--dark)">59,500pt</div>
+          </div>
+        </div>
+        <div style="background:var(--card);border-radius:18px;overflow:hidden;cursor:pointer" onclick="comingSoon()">
+          <div style="height:80px;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:30px">🏦</div>
+          <div style="padding:9px 11px">
+            <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;background:#E8F0FE;color:#3367D6;display:inline-block;margin-bottom:3px">口座開設</span>
+            <div style="font-size:12px;font-weight:700;margin-bottom:3px">みずほ銀行</div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:800;color:var(--dark)">44,000pt</div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:13px;font-weight:700;color:var(--dark);padding:8px;cursor:pointer" onclick="comingSoon()">もっと見る →</div>
+    </div>
+  </div>
+  <nav class="bnav">
+    <button data-tab="home" class="bnt" onclick="showTab('home')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>ホーム</button>
+    <button data-tab="ichios" class="bnt on" onclick="showTab('ichios')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>イチオシ</button>
+    <div class="bnt-c"><button data-tab="scan" class="bnt-fab" onclick="showTab('scan')"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></button><div class="bnt-fab-l">ためる</div></div>
+    <button data-tab="ranking" class="bnt" onclick="showTab('ranking')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="14" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="13" rx="1"/><rect x="2" y="17" width="4" height="5" rx="1"/><path d="M22 22H2"/></svg></span>ランキング</button>
+    <button data-tab="mypage" class="bnt" onclick="showTab('mypage')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>マイページ</button>
+  </nav>
+</div>
+<div class="screen" id="screen-ranking">
+  <div class="hdr"><div class="logo"><span>Eco</span>ist</div><div class="hdr-r"><button class="ico-btn" onclick="openBadgeNotif()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sub)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span class="dot" id="rk-bell-dot" style="display:none"></span></button></div></div>
+  <div class="scr">
+    <div style="display:flex;flex-direction:column;gap:10px;padding-top:4px">
+      <div class="cat-tabs" id="cat-tabs">
+        <button class="catb on" onclick="setRkCat('friend',this)">フレンド</button>
+        <button class="catb" onclick="setRkCat('area',this)">地域</button>
+        <button class="catb" onclick="setRkCat('univ',this)">大学</button>
+      </div>
+      <div class="ptabs" id="rk-p-tabs" style="align-self:flex-start">
+        <button class="ptb on" onclick="setRkPer('day',this)">日</button>
+        <button class="ptb" onclick="setRkPer('week',this)">週</button>
+        <button class="ptb" onclick="setRkPer('month',this)">月</button>
+        <button class="ptb" onclick="setRkPer('year',this)">年</button>
+      </div>
+      <div class="tm-card">
+        <div style="position:relative;z-index:1">
+          <div class="lbl-w" style="margin-bottom:5px" id="tm-lbl">チーム合計CO₂削減量</div>
+          <div class="n-xl" id="tm-val" style="color:#fff">—</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:4px" id="tm-sub">フレンド · 今日</div>
+        </div>
+      </div>
+      <!-- ★ 動画ボーナスカード（刷新） -->
+      <div id="vb-card" onclick="tryVid()" style="border-radius:20px;overflow:hidden;cursor:pointer;transition:transform .15s;active:scale(.97)">
+        <!-- ヘッダー行 -->
+        <div id="vb-header" style="background:linear-gradient(135deg,#C02040,#E84060);padding:13px 15px;display:flex;align-items:center;gap:11px">
+          <div style="width:38px;height:38px;border-radius:999px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:700;color:#fff" id="vb-ttl">動画でボーナスポイントゲット！</div>
+          </div>
+          <div id="vb-arrow" style="font-size:20px;color:rgba(255,255,255,.7)">›</div>
+        </div>
+        <!-- ステータス行 -->
+        <div style="background:rgba(232,64,96,.08);border:1.5px solid rgba(232,64,96,.18);border-top:none;border-radius:0 0 20px 20px;padding:11px 14px;display:flex;align-items:stretch;gap:8px">
+          <!-- 次まで -->
+          <div style="flex:1;background:#fff;border-radius:12px;padding:9px 10px;text-align:center">
+            <div style="font-size:9px;font-weight:700;color:var(--sub);letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px">次まであと</div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:var(--dark);line-height:1" id="vb-need-val">—</div>
+            <div style="font-size:9px;color:var(--sub);margin-top:2px">g</div>
+          </div>
+          <!-- 区切り -->
+          <div style="width:1px;background:rgba(232,64,96,.12);flex-shrink:0"></div>
+          <!-- 残り回数 -->
+          <div style="flex:1;background:#fff;border-radius:12px;padding:9px 10px;text-align:center">
+            <div style="font-size:9px;font-weight:700;color:var(--sub);letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px">残り回数</div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:var(--pink);line-height:1" id="vb-rem">0</div>
+            <div style="font-size:9px;color:var(--sub);margin-top:2px">/ <span id="vb-max">15</span>回</div>
+          </div>
+          <!-- 区切り -->
+          <div style="width:1px;background:rgba(232,64,96,.12);flex-shrink:0"></div>
+          <!-- 条件 -->
+          <div style="flex:1.3;background:#fff;border-radius:12px;padding:9px 10px;text-align:center;display:flex;flex-direction:column;justify-content:center">
+            <div style="font-size:9px;font-weight:700;color:var(--sub);letter-spacing:.5px;margin-bottom:3px">解放条件</div>
+            <div style="font-size:10px;font-weight:700;color:var(--dark);line-height:1.4">合計<span id="vb-threshold">300</span>g<br>ごとに1回</div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="padding:7px 14px 14px"><div class="pod-row" id="rk-pod"></div></div>
+      <div class="card-lt" style="display:flex;align-items:center;gap:8px">
+        <span style="color:var(--sub);display:flex"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+        <input type="text" placeholder="名前を検索" style="flex:1;font-size:13px;color:var(--txt);background:transparent" oninput="filterRk(this.value)">
+      </div>
+      <div id="rk-list" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+  </div>
+  <nav class="bnav">
+    <button data-tab="home" class="bnt" onclick="showTab('home')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>ホーム</button>
+    <button data-tab="ichios" class="bnt" onclick="showTab('ichios')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>イチオシ</button>
+    <div class="bnt-c"><button data-tab="scan" class="bnt-fab" onclick="showTab('scan')"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></button><div class="bnt-fab-l">ためる</div></div>
+    <button data-tab="ranking" class="bnt on" onclick="showTab('ranking')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="14" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="13" rx="1"/><rect x="2" y="17" width="4" height="5" rx="1"/><path d="M22 22H2"/></svg></span>ランキング</button>
+    <button data-tab="mypage" class="bnt" onclick="showTab('mypage')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>マイページ</button>
+  </nav>
+</div>
+
+<!-- ═══════════════ MYPAGE ═══════════════ -->
+<div class="screen" id="screen-mypage">
+  <div class="scr" style="padding:0 0 96px">
+    <div class="myp-h">
+      <button class="myp-gear" onclick="openSet()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+      <div class="myp-av-wrap" onclick="openAvatarPicker()">
+        <div class="myp-av-inner" id="myp-av-inner">🌱</div>
+        <div class="myp-av-edit">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+      </div>
+      <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:3px" id="mp-nm">エコ太郎</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.55);margin-bottom:5px" id="mp-hd">@ecotaro</div>
+      <div class="tag tag-w" id="mp-lv-tag" style="margin-bottom:8px">Lv.1 エコの卵</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:4px" id="mp-lv-progress-lbl">次のLvまで 0 / 5 回</div>
+      <div class="lv-bar-wrap"><div class="lv-bar-fill" id="mp-lv-bar" style="width:0%"></div></div>
+    </div>
+    <div style="padding:13px 16px;display:flex;flex-direction:column;gap:10px">
+      <div class="pex">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--mid));display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--sub);font-weight:600;letter-spacing:.3px">獲得ポイント</div>
+            <div class="n-md" id="mp-pts" style="color:var(--txt);margin-top:2px">0</div>
+          </div>
+        </div>
+        <button class="btn btn-s btn-accent" onclick="openExch()">交換する</button>
+      </div>
+      <div class="stats-g">
+        <div class="st-c"><div class="st-v" id="mp-tpts">0</div><div class="st-l">総ポイント</div></div>
+        <div class="st-c"><div class="st-v" id="mp-scns">0回</div><div class="st-l">総分別回数</div></div>
+        <div class="st-c"><div class="st-v" id="mp-strk">1日</div><div class="st-l">継続日数</div></div>
+        <div class="st-c"><div class="st-v" id="mp-co2">0g</div><div class="st-l">CO₂削減量</div></div>
+      </div>
+      <!-- 木の図鑑ボタン -->
+      <button class="zk-book-btn" onclick="openZkBook()">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:var(--light);border-radius:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mid)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12"/><path d="M5 9l7-7 7 7"/><path d="M3 14l9-5 9 5"/><path d="M6 17l6-3 6 3"/></svg></span>
+          <div style="text-align:left">
+            <div style="font-size:14px;font-weight:700;color:var(--dark)">木の図鑑</div>
+            <div style="font-size:11px;color:var(--sub);margin-top:1px">解放したキャラをチェック</div>
+          </div>
+        </div>
+        <span style="font-size:19px;color:var(--dark)">›</span>
+      </button>
+      <!-- バッジ -->
+      <div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:9px">獲得バッジ</div>
+        <div class="bdg-row" id="bdg-row"></div>
+      </div>
+      <div class="menu-l">
+        <div class="mi" onclick="openProf()"><div style="display:flex;align-items:center"><span class="mi-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>プロフィール編集</div><span style="color:var(--sub)">›</span></div>
+        <div class="mi"><div style="display:flex;align-items:center"><span class="mi-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>通知設定</div><span style="color:var(--sub)">›</span></div>
+        <div class="mi" onclick="showTab('map')"><div style="display:flex;align-items:center"><span class="mi-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>ゴミ箱マップ</div><span style="color:var(--sub)">›</span></div>
+        <div class="mi"><div style="display:flex;align-items:center"><span class="mi-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>プライバシー設定</div><span style="color:var(--sub)">›</span></div>
+        <div class="mi dng"><div style="display:flex;align-items:center"><span class="mi-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>ログアウト</div><span style="color:var(--sub)">›</span></div>
+      </div>
+    </div>
+  </div>
+  <nav class="bnav">
+    <button data-tab="home" class="bnt" onclick="showTab('home')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>ホーム</button>
+    <button data-tab="ichios" class="bnt" onclick="showTab('ichios')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>イチオシ</button>
+    <div class="bnt-c"><button data-tab="scan" class="bnt-fab" onclick="showTab('scan')"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></button><div class="bnt-fab-l">ためる</div></div>
+    <button data-tab="ranking" class="bnt" onclick="showTab('ranking')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="14" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="13" rx="1"/><rect x="2" y="17" width="4" height="5" rx="1"/><path d="M22 22H2"/></svg></span>ランキング</button>
+    <button data-tab="mypage" class="bnt on" onclick="showTab('mypage')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>マイページ</button>
+  </nav>
+</div>
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+<!-- カレンダー -->
+<div class="overlay ctr a-fade" id="cal-modal" style="display:none" onclick="if(event.target===this)closeM('cal-modal')">
+  <div class="sheet ctr a-sin" style="position:relative">
+    <button class="s-close" onclick="closeM('cal-modal')">✕</button>
+    <div style="font-size:17px;font-weight:700;margin-bottom:3px">2026年 5月</div>
+    <div style="font-size:12px;color:var(--sub);margin-bottom:15px">分別した日をタップして確認</div>
+    <div id="cal-g"></div>
+    <div id="cal-det" style="display:none;background:var(--paler);border-radius:14px;padding:13px;margin-top:11px">
+      <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:7px" id="cal-date"></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:var(--sub)">CO₂削減量</span><span style="font-weight:700" id="cal-co2"></span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--sub)">ペットボトル削減</span><span style="font-weight:700" id="cal-pet"></span></div>
+    </div>
+    <button class="btn btn-dk" style="width:100%;margin-top:15px" onclick="closeM('cal-modal')">とじる</button>
+  </div>
+</div>
+
+<!-- 動画モーダル（ランキング画面からも・スキャン後からも使う） -->
+<div class="overlay ctr a-fade" id="vid-modal" style="display:none" onclick="if(event.target===this)closeVid()">
+  <div class="sheet ctr a-sin" style="text-align:center;position:relative">
+    <button class="s-close" onclick="closeVid()">✕</button>
+    <div style="font-size:17px;font-weight:700;margin-bottom:13px;display:flex;align-items:center;justify-content:center;gap:7px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>ボーナス動画</div>
+    <div class="vid-m"><span id="vid-ico">▶️</span><div class="vid-p" id="vid-p" style="width:0%"></div></div>
+    <div style="font-size:12px;color:var(--sub);margin-bottom:13px" id="vid-st">動画を見てボーナスポイントをゲット！</div>
+    <button class="btn btn-dk" style="width:100%" id="vid-btn2" onclick="playVid()">動画を再生する ▶</button>
+  </div>
+</div>
+
+<!-- ポイント交換 -->
+<div class="overlay a-fade" id="exch-modal" style="display:none" onclick="if(event.target===this)closeM('exch-modal')">
+  <div class="sheet a-sin">
+    <div class="hdl"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div style="font-size:17px;font-weight:700">ポイントを交換する</div>
+      <div class="n-md" style="color:var(--dark);font-size:15px">⚡ <span id="ex-pts">0</span>pt</div>
+    </div>
+    <div style="font-size:12px;color:var(--sub);margin-bottom:16px;line-height:1.8;background:var(--light);border-radius:12px;padding:11px 13px">
+      <strong style="color:var(--dark)">1,000pt以上</strong>から交換可能<br>
+      1pt ≈ 0.1円 · デジタルギフト経由
+    </div>
+    <!-- デジタルギフト風UI -->
+    <div style="background:linear-gradient(135deg,#0066CC,#0080FF);border-radius:18px;padding:18px;margin-bottom:14px;text-align:center">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:1px;margin-bottom:4px">DIGITAL GIFT</div>
+      <div style="font-size:28px;font-weight:800;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:2px">想いを、すぐに。</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.65)">各種ポイント・ギフト券に交換</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="background:var(--card);border-radius:16px;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--sh)">
+        <div>
+          <div style="font-size:13px;font-weight:700">PayPay 100円分</div>
+          <div style="font-size:11px;color:var(--sub);margin-top:2px">デジタルギフト経由</div>
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:var(--dark);margin-top:3px">1,000 <span style="font-size:13px;color:var(--sub);font-weight:500">pt</span></div>
+        </div>
+        <button class="btn btn-s btn-dk" onclick="comingSoon()">交換 ›</button>
+      </div>
+      <div style="background:var(--card);border-radius:16px;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--sh)">
+        <div>
+          <div style="font-size:13px;font-weight:700">Amazonギフト券 500円分</div>
+          <div style="font-size:11px;color:var(--sub);margin-top:2px">デジタルギフト経由</div>
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:var(--dark);margin-top:3px">5,000 <span style="font-size:13px;color:var(--sub);font-weight:500">pt</span></div>
+        </div>
+        <button class="btn btn-s btn-dk" onclick="comingSoon()">交換 ›</button>
+      </div>
+    </div>
+    <button class="btn btn-lt" style="width:100%;margin-top:13px" onclick="closeM('exch-modal')">とじる</button>
+  </div>
+</div>
+
+<!-- 設定 -->
+<div class="overlay a-fade" id="set-modal" style="display:none" onclick="if(event.target===this)closeM('set-modal')">
+  <div class="sheet a-sin">
+    <div class="hdl"></div>
+    <div style="font-size:17px;font-weight:700;margin-bottom:15px">設定</div>
+    <div id="set-list"></div>
+    <button class="btn btn-lt" style="width:100%;margin-top:13px" onclick="closeM('set-modal')">とじる</button>
+  </div>
+</div>
+
+<!-- プロフィール編集 -->
+<div class="overlay ctr a-fade" id="prof-modal" style="display:none" onclick="if(event.target===this)closeM('prof-modal')">
+  <div class="sheet ctr a-sin" style="position:relative">
+    <button class="s-close" onclick="closeM('prof-modal')">✕</button>
+    <div style="font-size:17px;font-weight:700;text-align:center;margin-bottom:13px">プロフィールを編集</div>
+    <div style="text-align:center;margin-bottom:11px">
+      <div style="width:70px;height:70px;border-radius:999px;background:var(--paler);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden" id="prof-av-preview">🌱</div>
+      <button style="font-size:12px;font-weight:700;color:var(--dark);background:var(--paler);border-radius:999px;padding:5px 14px;border:none;cursor:pointer" onclick="closeM('prof-modal');openAvatarPicker()">アイコンを変更 →</button>
+    </div>
+    <div style="margin-bottom:13px"><label class="fl">ニックネーム</label><input class="fi" id="pnm" type="text"></div>
+    <div style="margin-bottom:13px"><label class="fl">一言</label><input class="fi" id="pbio" type="text" maxlength="40"></div>
+    <button class="btn btn-dk" style="width:100%" onclick="saveProf()">保存する</button>
+  </div>
+</div>
+
+<!-- アバター -->
+<div class="overlay ctr a-fade" id="avatar-modal" style="display:none" onclick="if(event.target===this)closeM('avatar-modal')">
+  <div class="sheet ctr a-sin" style="position:relative">
+    <button class="s-close" onclick="closeM('avatar-modal')">✕</button>
+    <div style="font-size:17px;font-weight:700;text-align:center;margin-bottom:5px">アイコンを選ぶ</div>
+    <div class="av-grid" id="av-grid-emoji"></div>
+    <label class="btn btn-lt" style="width:100%;justify-content:center">📷 写真を選ぶ<input type="file" accept="image/*" style="display:none" onchange="handleAvPhoto(this)"></label>
+    <button class="btn btn-dk" style="width:100%;margin-top:9px" onclick="saveAvatar()">決定</button>
+  </div>
+</div>
+
+<!-- 木の図鑑一覧 -->
+<div class="overlay a-fade" id="zk-book-modal" style="display:none" onclick="if(event.target===this)closeM('zk-book-modal')">
+  <div class="sheet a-sin">
+    <div class="hdl"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div style="font-size:17px;font-weight:700;display:flex;align-items:center;gap:7px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mid)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12"/><path d="M5 9l7-7 7 7"/><path d="M3 14l9-5 9 5"/><path d="M6 17l6-3 6 3"/></svg>木の図鑑</div>
+      <button style="font-size:13px;color:var(--sub);background:var(--light);border-radius:999px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer" onclick="closeM('zk-book-modal')">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--sub);margin-bottom:14px">解放済みのキャラをタップして詳細確認</div>
+    <div class="zk-g" id="zk-grid"></div>
+    <button class="btn btn-lt" style="width:100%;margin-top:14px" onclick="closeM('zk-book-modal')">とじる</button>
+  </div>
+</div>
+
+<!-- 木の詳細モーダル -->
+<div class="overlay ctr a-fade" id="tree-modal" style="display:none" onclick="if(event.target===this)closeM('tree-modal')">
+  <div class="sheet ctr a-sin" style="position:relative">
+    <button class="s-close" onclick="closeM('tree-modal')">✕</button>
+    <div style="text-align:center;margin-bottom:14px">
+      <div id="tm-svg-wrap" style="display:flex;justify-content:center;margin-bottom:10px"></div>
+      <div id="tm-lv-tag" class="tag tag-g" style="margin-bottom:6px">Lv.1</div>
+      <div id="tm-nm" style="font-size:20px;font-weight:700"></div>
+    </div>
+    <div id="tm-story" style="font-size:13px;color:var(--sub);line-height:1.9;background:var(--paler);border-radius:14px;padding:14px"></div>
+    <button class="btn btn-lt" style="width:100%;margin-top:13px" onclick="closeM('tree-modal')">とじる</button>
+  </div>
+</div>
+
+<!-- バッジモーダル -->
+<div class="overlay ctr a-fade" id="bdg-modal" style="display:none" onclick="if(event.target===this)closeM('bdg-modal')">
+  <div class="sheet ctr a-sin" style="position:relative;text-align:center">
+    <button class="s-close" onclick="closeM('bdg-modal')">✕</button>
+    <div style="font-size:52px;margin-bottom:7px" id="bm-e">🌱</div>
+    <div style="font-size:19px;font-weight:700;margin-bottom:5px" id="bm-nm">バッジ名</div>
+    <div style="font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:14px" id="bm-desc"></div>
+    <div id="bm-pts-wrap" style="background:var(--paler);border-radius:16px;padding:12px;margin-bottom:15px">
+      <div style="font-size:12px;color:var(--sub);margin-bottom:3px" id="bm-pts-label">ボーナスポイント</div>
+      <div class="n-lg" style="color:var(--dark)" id="bm-pts">+15pt</div>
+    </div>
+    <button class="btn btn-dk" style="width:100%" id="bm-claim-btn" onclick="claimBadge()">🎁 ポイントを受け取る</button>
+  </div>
+</div>
+
+<!-- バッジ通知 -->
+<div class="overlay a-fade" id="badge-notif-modal" style="display:none" onclick="if(event.target===this)closeM('badge-notif-modal')">
+  <div class="sheet a-sin">
+    <div class="hdl"></div>
+    <div style="font-size:17px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:7px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>バッジ通知</div>
+    <div style="font-size:12px;color:var(--sub);margin-bottom:15px">受け取り待ちのバッジ</div>
+    <div id="badge-notif-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    <button class="btn btn-lt" style="width:100%;margin-top:13px" onclick="closeM('badge-notif-modal')">とじる</button>
+  </div>
+</div>
+
+<!-- レベルアップ -->
+<div class="overlay ctr a-fade" id="lvup-modal" style="display:none">
+  <div class="sheet ctr a-sin" style="text-align:center;position:relative">
+    <div class="a-lvup" id="lvup-svg" style="display:flex;justify-content:center;margin-bottom:9px"></div>
+    <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;font-weight:800;color:var(--dark);margin-bottom:5px">レベルアップ！</div>
+    <div style="font-size:14px;font-weight:700;color:var(--txt);margin-bottom:13px" id="lvup-lbl">Lv.2</div>
+    <div style="background:var(--paler);border-radius:16px;padding:14px;margin-bottom:15px">
+      <div style="font-size:12px;color:var(--sub);margin-bottom:5px">レベルアップボーナス</div>
+      <div class="n-lg" id="lvup-pts" style="color:var(--dark)">+25pt</div>
+      <div style="font-size:12px;color:var(--dark);margin-top:5px;font-weight:700" id="lvup-unlock"></div>
+    </div>
+    <button class="btn btn-dk" style="width:100%" onclick="closeM('lvup-modal')">ありがとう！</button>
+  </div>
+</div>
+
+<!-- Coming Soon -->
+<div class="overlay ctr a-fade" id="cs-modal" style="display:none" onclick="closeM('cs-modal')">
+  <div class="sheet ctr a-sin" style="text-align:center;position:relative">
+    <button class="s-close" onclick="closeM('cs-modal')">✕</button>
+    <div style="font-size:48px;margin-bottom:11px">🚀</div>
+    <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;margin-bottom:7px">Coming Soon</div>
+    <div style="font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:18px">この機能はただいま準備中です。近日公開予定！</div>
+    <button class="btn btn-dk" style="width:100%" onclick="closeM('cs-modal')">とじる</button>
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<script>
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+const SK='ecoist-v17';
+const DF={registered:false,name:'エコ太郎',handle:'@ecotaro',bio:'環境を守りたいです',avatar:'🌱',avatarPhoto:null,points:0,todayScans:0,totalScans:0,totalCo2g:0,totalGarbageG:0,streakDays:1,history:[],questCompleted:false,videoWatchCount:0,claimedBadges:[],prevLv:1,lastDate:''};
+let S;try{S=Object.assign({},DF,JSON.parse(localStorage.getItem(SK)||'null')||{});}catch{S={...DF};}
+['claimedBadges'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];});
+if(!S.avatarPhoto)S.avatarPhoto=null;
+// 日付をまたいだら日次データをリセット
+(function dailyReset(){
+  const today=new Date().toLocaleDateString('ja-JP');
+  if(S.lastDate!==today){
+    S.todayScans=0;
+    S.videoWatchCount=0;
+    S.questCompleted=false;
+    S.lastDate=today;
+    localStorage.setItem(SK,JSON.stringify(S));
+  }
+})();
+function sv(){localStorage.setItem(SK,JSON.stringify(S));}
+
+// ══════════════════════════════════════════
+// TREE SVG CHARACTERS (キャラクター化)
+// ══════════════════════════════════════════
+const TREE_SVGS = {
+  1: `<svg width="80" height="80" viewBox="0 0 80 80"><ellipse cx="40" cy="58" rx="14" ry="16" fill="#7BC88A"/><circle cx="40" cy="30" r="22" fill="#5AAD6C"/><circle cx="40" cy="30" r="19" fill="#6BC07A"/><circle cx="33" cy="28" r="3" fill="#fff"/><circle cx="47" cy="28" r="3" fill="#fff"/><circle cx="34" cy="28.5" r="1.6" fill="#2a5a30"/><circle cx="48" cy="28.5" r="1.6" fill="#2a5a30"/><path d="M35 35 Q40 40 45 35" stroke="#2a5a30" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="34" cy="17" r="4" fill="#4A9A5C"/><circle cx="47" cy="15" r="3" fill="#4A9A5C"/><text x="28" y="10" font-size="8" opacity=".5">✦</text></svg>`,
+  2: `<svg width="80" height="80" viewBox="0 0 80 80"><ellipse cx="40" cy="60" rx="15" ry="16" fill="#5E9E70"/><ellipse cx="40" cy="35" rx="22" ry="26" fill="#4D9E62"/><ellipse cx="40" cy="30" rx="18" ry="22" fill="#64B47A"/><path d="M40 14 L40 56" stroke="#3A7A4C" stroke-width="2" stroke-dasharray="4,3"/><circle cx="33" cy="28" r="3.2" fill="#fff"/><circle cx="47" cy="28" r="3.2" fill="#fff"/><circle cx="34" cy="29" r="1.8" fill="#1E4A28"/><circle cx="48" cy="29" r="1.8" fill="#1E4A28"/><circle cx="34.8" cy="28" r=".7" fill="#fff"/><circle cx="48.8" cy="28" r=".7" fill="#fff"/><path d="M35 35 Q40 41 45 35" stroke="#1E4A28" stroke-width="1.8" fill="none" stroke-linecap="round"/><text x="18" y="22" font-size="9" opacity=".6">✦</text><text x="60" y="18" font-size="7" opacity=".5">·</text></svg>`,
+  3: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="33" y="52" width="14" height="20" rx="4" fill="#8B6B4A"/><circle cx="40" cy="36" r="24" fill="#F4A8BC"/><circle cx="40" cy="32" r="20" fill="#F8C4D0"/><circle cx="28" cy="38" r="10" fill="#F4A8BC" opacity=".7"/><circle cx="52" cy="38" r="10" fill="#F4A8BC" opacity=".7"/><circle cx="33" cy="30" r="3" fill="#fff"/><circle cx="47" cy="30" r="3" fill="#fff"/><circle cx="34" cy="30.5" r="1.7" fill="#5a2a35"/><circle cx="48" cy="30.5" r="1.7" fill="#5a2a35"/><path d="M34 37 Q40 42 46 37" stroke="#5a2a35" stroke-width="1.5" fill="none" stroke-linecap="round"/><text x="14" y="20" font-size="10">🌸</text><text x="58" y="16" font-size="8">🌸</text><text x="62" y="50" font-size="7">🌸</text></svg>`,
+  4: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="22" y="48" width="7" height="26" rx="3" fill="#7A5A30"/><rect x="51" y="48" width="7" height="26" rx="3" fill="#7A5A30"/><circle cx="26" cy="32" r="18" fill="#5AAD6C"/><circle cx="26" cy="28" r="15" fill="#6BC07A"/><circle cx="33" cy="26" r="3" fill="#fff"/><circle cx="21" cy="26" r="3" fill="#fff"/><circle cx="34" cy="26.5" r="1.6" fill="#2a5a30"/><circle cx="22" cy="26.5" r="1.6" fill="#2a5a30"/><path d="M21 33 Q26 38 33 33" stroke="#2a5a30" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="54" cy="34" r="16" fill="#4A9A5C"/><circle cx="54" cy="30" r="13" fill="#5AAD6C"/><circle cx="60" cy="28" r="2.8" fill="#fff"/><circle cx="49" cy="28" r="2.8" fill="#fff"/><circle cx="60.5" cy="28.5" r="1.5" fill="#2a5a30"/><circle cx="49.5" cy="28.5" r="1.5" fill="#2a5a30"/><path d="M49 34 Q54 39 60 34" stroke="#2a5a30" stroke-width="1.4" fill="none" stroke-linecap="round"/><text x="36" y="16" font-size="8" opacity=".5">✦</text></svg>`,
+  5: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="34" y="50" width="12" height="24" rx="3" fill="#6B4E2A"/><circle cx="40" cy="34" r="26" fill="#3D7A3E"/><circle cx="40" cy="28" r="22" fill="#4A8C4C"/><circle cx="26" cy="36" r="14" fill="#3D7A3E"/><circle cx="54" cy="36" r="14" fill="#3D7A3E"/><circle cx="34" cy="27" r="3.2" fill="#fff"/><circle cx="46" cy="27" r="3.2" fill="#fff"/><circle cx="35" cy="27.5" r="1.8" fill="#1A3A1C"/><circle cx="47" cy="27.5" r="1.8" fill="#1A3A1C"/><path d="M34 33 Q40 38 46 33" stroke="#1A3A1C" stroke-width="1.8" fill="none" stroke-linecap="round"/><text x="10" y="14" font-size="8" opacity=".5">✦</text><text x="62" y="60" font-size="7" opacity=".4">✦</text></svg>`,
+  8: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="18" y="20" width="6" height="54" rx="3" fill="#5A8A40"/><rect x="30" y="14" width="6" height="60" rx="3" fill="#6A9A4C"/><rect x="42" y="18" width="6" height="56" rx="3" fill="#5A8A40"/><rect x="54" y="22" width="6" height="52" rx="3" fill="#6A9A4C"/><ellipse cx="21" cy="18" rx="8" ry="12" fill="#7AAC58" opacity=".8"/><ellipse cx="33" cy="12" rx="8" ry="12" fill="#8ABC64"/><ellipse cx="45" cy="16" rx="8" ry="12" fill="#7AAC58" opacity=".9"/><ellipse cx="57" cy="20" rx="8" ry="12" fill="#8ABC64" opacity=".8"/><circle cx="30" cy="36" r="3" fill="#fff"/><circle cx="42" cy="36" r="3" fill="#fff"/><circle cx="31" cy="36.5" r="1.7" fill="#1A3A10"/><circle cx="43" cy="36.5" r="1.7" fill="#1A3A10"/><path d="M30 42 Q36 47 42 42" stroke="#1A3A10" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`,
+  12: `<svg width="80" height="80" viewBox="0 0 80 80"><ellipse cx="40" cy="66" rx="12" ry="8" fill="#B8860B" opacity=".4"/><rect x="36" y="42" width="8" height="28" rx="4" fill="#8B6B30"/><ellipse cx="40" cy="28" rx="18" ry="22" fill="#4CAF70"/><ellipse cx="24" cy="38" rx="10" ry="16" fill="#3D9A5C" opacity=".8"/><ellipse cx="56" cy="38" rx="10" ry="16" fill="#3D9A5C" opacity=".8"/><circle cx="40" cy="22" r="8" fill="#8BC44A" opacity=".7"/><circle cx="33" cy="26" r="3" fill="#fff"/><circle cx="47" cy="26" r="3" fill="#fff"/><circle cx="34" cy="26.5" r="1.7" fill="#1A3A1C"/><circle cx="48" cy="26.5" r="1.7" fill="#1A3A1C"/><path d="M34 32 Q40 37 46 32" stroke="#1A3A1C" stroke-width="1.5" fill="none" stroke-linecap="round"/><text x="58" y="20" font-size="9" opacity=".7">🌴</text></svg>`,
+  20: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="33" y="46" width="14" height="28" rx="5" fill="#5A3E20"/><circle cx="40" cy="30" r="28" fill="#2E6E2E"/><circle cx="40" cy="24" r="24" fill="#38823A"/><circle cx="22" cy="32" r="16" fill="#2E6E2E"/><circle cx="58" cy="32" r="16" fill="#2E6E2E"/><circle cx="40" cy="12" r="12" fill="#38823A"/><circle cx="33" cy="26" r="3.5" fill="#fff"/><circle cx="47" cy="26" r="3.5" fill="#fff"/><circle cx="34.2" cy="26.5" r="2" fill="#0A2A10"/><circle cx="48.2" cy="26.5" r="2" fill="#0A2A10"/><circle cx="35" cy="25.5" r=".8" fill="#fff"/><circle cx="49" cy="25.5" r=".8" fill="#fff"/><path d="M33 33 Q40 39 47 33" stroke="#0A2A10" stroke-width="2" fill="none" stroke-linecap="round"/><text x="8" y="16" font-size="8" opacity=".4">✦</text><text x="64" y="14" font-size="8" opacity=".4">✦</text></svg>`,
+  30: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="35" y="52" width="10" height="22" rx="3" fill="#7A5A2A"/><ellipse cx="40" cy="44" rx="30" ry="16" fill="#C8A840" opacity=".3"/><circle cx="40" cy="30" r="26" fill="#4A8040"/><circle cx="40" cy="24" r="22" fill="#5A9A4C"/><circle cx="20" cy="34" r="14" fill="#4A8040" opacity=".8"/><circle cx="60" cy="34" r="14" fill="#4A8040" opacity=".8"/><circle cx="34" cy="27" r="3" fill="#fff"/><circle cx="46" cy="27" r="3" fill="#fff"/><circle cx="35" cy="27.5" r="1.7" fill="#1A3A10"/><circle cx="47" cy="27.5" r="1.7" fill="#1A3A10"/><path d="M34 33 Q40 38 46 33" stroke="#1A3A10" stroke-width="1.5" fill="none" stroke-linecap="round"/><text x="14" y="64" font-size="12">🌾</text><text x="52" y="64" font-size="12">🌾</text></svg>`,
+  50: `<svg width="80" height="80" viewBox="0 0 80 80"><polygon points="40,6 46,22 64,22 50,34 56,52 40,42 24,52 30,34 16,22 34,22" fill="#D4AF37"/><circle cx="40" cy="30" r="18" fill="#4A7A3A"/><circle cx="40" cy="24" r="15" fill="#5A8A4A"/><circle cx="33" cy="23" r="3" fill="#fff"/><circle cx="47" cy="23" r="3" fill="#fff"/><circle cx="34" cy="23.5" r="1.7" fill="#1A3A10"/><circle cx="48" cy="23.5" r="1.7" fill="#1A3A10"/><path d="M33 30 Q40 35 47 30" stroke="#1A3A10" stroke-width="1.5" fill="none" stroke-linecap="round"/><text x="26" y="72" font-size="10" opacity=".7">✦✦✦</text></svg>`,
+  6: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="35" y="52" width="10" height="22" rx="3" fill="#7A5A30"/><ellipse cx="40" cy="36" rx="20" ry="24" fill="#4A9A5E"/><ellipse cx="40" cy="30" rx="16" ry="20" fill="#5AB06C"/><circle cx="28" cy="40" r="10" fill="#4A9A5E" opacity=".7"/><circle cx="52" cy="40" r="10" fill="#4A9A5E" opacity=".7"/><circle cx="33" cy="28" r="3" fill="#fff"/><circle cx="47" cy="28" r="3" fill="#fff"/><circle cx="34" cy="28.5" r="1.7" fill="#1A3A1C"/><circle cx="48" cy="28.5" r="1.7" fill="#1A3A1C"/><path d="M34 34 Q40 39 46 34" stroke="#1A3A1C" stroke-width="1.5" fill="none" stroke-linecap="round"/><text x="58" y="18" font-size="8" opacity=".5">✦</text></svg>`,
+  7: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="35" y="50" width="10" height="24" rx="3" fill="#7A5A30"/><circle cx="40" cy="34" r="22" fill="#4A9A60"/><circle cx="40" cy="28" r="18" fill="#5CB872"/><circle cx="26" cy="38" r="12" fill="#3E8852" opacity=".75"/><circle cx="54" cy="38" r="12" fill="#3E8852" opacity=".75"/><circle cx="33" cy="27" r="3.1" fill="#fff"/><circle cx="47" cy="27" r="3.1" fill="#fff"/><circle cx="34" cy="27.5" r="1.7" fill="#1A3A1C"/><circle cx="48" cy="27.5" r="1.7" fill="#1A3A1C"/><path d="M34 33 Q40 38 46 33" stroke="#1A3A1C" stroke-width="1.5" fill="none" stroke-linecap="round"/><text x="14" y="16" font-size="8" opacity=".5">·</text><text x="60" y="60" font-size="7" opacity=".4">✦</text></svg>`,
+  9: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="34" y="48" width="12" height="26" rx="4" fill="#6B4E2A"/><circle cx="40" cy="32" r="24" fill="#3D8040"/><circle cx="40" cy="26" r="20" fill="#4A9A4C"/><circle cx="24" cy="36" r="13" fill="#3D8040" opacity=".8"/><circle cx="56" cy="36" r="13" fill="#3D8040" opacity=".8"/><circle cx="40" cy="14" r="9" fill="#4A9A4C"/><circle cx="33" cy="26" r="3.2" fill="#fff"/><circle cx="47" cy="26" r="3.2" fill="#fff"/><circle cx="34" cy="26.5" r="1.8" fill="#1A3A10"/><circle cx="48" cy="26.5" r="1.8" fill="#1A3A10"/><path d="M33 32 Q40 37 47 32" stroke="#1A3A10" stroke-width="1.7" fill="none" stroke-linecap="round"/><text x="10" y="15" font-size="7" opacity=".5">✦</text></svg>`,
+  10: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="35" y="50" width="10" height="24" rx="4" fill="#5A3E20"/><circle cx="40" cy="30" r="26" fill="#3A7A40"/><circle cx="40" cy="24" r="22" fill="#4A8E4C"/><circle cx="20" cy="34" r="15" fill="#3A7A40" opacity=".8"/><circle cx="60" cy="34" r="15" fill="#3A7A40" opacity=".8"/><circle cx="40" cy="10" r="11" fill="#4A8E4C"/><circle cx="33" cy="25" r="3.3" fill="#fff"/><circle cx="47" cy="25" r="3.3" fill="#fff"/><circle cx="34" cy="25.5" r="1.9" fill="#1A3A10"/><circle cx="48" cy="25.5" r="1.9" fill="#1A3A10"/><circle cx="34.8" cy="24.5" r=".75" fill="#fff"/><circle cx="48.8" cy="24.5" r=".75" fill="#fff"/><path d="M33 32 Q40 38 47 32" stroke="#1A3A10" stroke-width="1.8" fill="none" stroke-linecap="round"/><text x="8" y="13" font-size="9" opacity=".45">✦</text><text x="64" y="15" font-size="7" opacity=".4">✦</text></svg>`,
+  11: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="35" y="49" width="10" height="25" rx="4" fill="#5A3E20"/><circle cx="40" cy="30" r="26" fill="#3A7A3E"/><circle cx="40" cy="24" r="22" fill="#4A9050"/><circle cx="19" cy="34" r="15" fill="#3A7A3E" opacity=".8"/><circle cx="61" cy="34" r="15" fill="#3A7A3E" opacity=".8"/><circle cx="40" cy="10" r="11" fill="#4A9050"/><circle cx="33" cy="25" r="3.2" fill="#fff"/><circle cx="47" cy="25" r="3.2" fill="#fff"/><circle cx="34" cy="25.5" r="1.8" fill="#1A3A10"/><circle cx="48" cy="25.5" r="1.8" fill="#1A3A10"/><path d="M33 31 Q40 37 47 31" stroke="#1A3A10" stroke-width="1.7" fill="none" stroke-linecap="round"/><text x="62" y="60" font-size="8" opacity=".4">✦</text></svg>`,
+  13: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="35" y="46" width="10" height="28" rx="4" fill="#8B6B30"/><ellipse cx="40" cy="30" rx="20" ry="24" fill="#4CAF70"/><ellipse cx="24" cy="40" rx="12" ry="18" fill="#3D9A5C" opacity=".8"/><ellipse cx="56" cy="40" rx="12" ry="18" fill="#3D9A5C" opacity=".8"/><circle cx="40" cy="20" r="10" fill="#8BC44A" opacity=".7"/><circle cx="33" cy="27" r="3" fill="#fff"/><circle cx="47" cy="27" r="3" fill="#fff"/><circle cx="34" cy="27.5" r="1.7" fill="#1A3A1C"/><circle cx="48" cy="27.5" r="1.7" fill="#1A3A1C"/><path d="M34 33 Q40 38 46 33" stroke="#1A3A1C" stroke-width="1.5" fill="none" stroke-linecap="round"/><text x="60" y="18" font-size="8" opacity=".65">🌴</text></svg>`,
+  14: `<svg width="80" height="80" viewBox="0 0 80 80"><ellipse cx="40" cy="67" rx="13" ry="8" fill="#B8860B" opacity=".35"/><rect x="36" y="44" width="8" height="28" rx="4" fill="#8B6B30"/><ellipse cx="40" cy="30" rx="19" ry="23" fill="#4CAF70"/><ellipse cx="23" cy="40" rx="11" ry="17" fill="#3D9A5C" opacity=".8"/><ellipse cx="57" cy="40" rx="11" ry="17" fill="#3D9A5C" opacity=".8"/><circle cx="40" cy="18" r="9" fill="#8BC44A" opacity=".7"/><circle cx="33" cy="26" r="3" fill="#fff"/><circle cx="47" cy="26" r="3" fill="#fff"/><circle cx="34" cy="26.5" r="1.7" fill="#1A3A1C"/><circle cx="48" cy="26.5" r="1.7" fill="#1A3A1C"/><path d="M34 32 Q40 37 46 32" stroke="#1A3A1C" stroke-width="1.5" fill="none" stroke-linecap="round"/><text x="58" y="19" font-size="9" opacity=".7">🌴</text></svg>`,
+  15: `<svg width="80" height="80" viewBox="0 0 80 80"><ellipse cx="40" cy="66" rx="14" ry="9" fill="#8B7A40" opacity=".3"/><rect x="37" y="44" width="6" height="28" rx="3" fill="#7A6028"/><ellipse cx="40" cy="28" rx="20" ry="24" fill="#3A8050"/><ellipse cx="22" cy="40" rx="13" ry="18" fill="#2E7040" opacity=".8"/><ellipse cx="58" cy="40" rx="13" ry="18" fill="#2E7040" opacity=".8"/><circle cx="40" cy="10" r="11" fill="#3A8050"/><circle cx="33" cy="26" r="3.2" fill="#fff"/><circle cx="47" cy="26" r="3.2" fill="#fff"/><circle cx="34" cy="26.5" r="1.8" fill="#0E2E14"/><circle cx="48" cy="26.5" r="1.8" fill="#0E2E14"/><path d="M33 33 Q40 38 47 33" stroke="#0E2E14" stroke-width="1.7" fill="none" stroke-linecap="round"/><text x="8" y="18" font-size="8" opacity=".5">✦</text><text x="62" y="60" font-size="8" opacity=".4">✦</text></svg>`,
+  16: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="35" y="50" width="10" height="24" rx="4" fill="#4A3A1A"/><circle cx="40" cy="30" r="26" fill="#347A38"/><circle cx="40" cy="24" r="22" fill="#3E8E44"/><circle cx="18" cy="34" r="16" fill="#347A38" opacity=".75"/><circle cx="62" cy="34" r="16" fill="#347A38" opacity=".75"/><circle cx="40" cy="8" r="12" fill="#3E8E44"/><circle cx="33" cy="24" r="3.3" fill="#fff"/><circle cx="47" cy="24" r="3.3" fill="#fff"/><circle cx="34" cy="24.5" r="1.9" fill="#0A2A10"/><circle cx="48" cy="24.5" r="1.9" fill="#0A2A10"/><path d="M32 31 Q40 37 48 31" stroke="#0A2A10" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`,
+  17: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="35" y="50" width="10" height="24" rx="4" fill="#3A3010"/><circle cx="40" cy="29" r="27" fill="#2E7236"/><circle cx="40" cy="23" r="23" fill="#38864A"/><circle cx="16" cy="33" r="17" fill="#2E7236" opacity=".75"/><circle cx="64" cy="33" r="17" fill="#2E7236" opacity=".75"/><circle cx="40" cy="6" r="13" fill="#38864A"/><circle cx="33" cy="23" r="3.4" fill="#fff"/><circle cx="47" cy="23" r="3.4" fill="#fff"/><circle cx="34" cy="23.5" r="2" fill="#0A2A10"/><circle cx="48" cy="23.5" r="2" fill="#0A2A10"/><path d="M32 30 Q40 36 48 30" stroke="#0A2A10" stroke-width="1.8" fill="none" stroke-linecap="round"/><text x="62" y="12" font-size="7" opacity=".4">✦</text></svg>`,
+  18: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="35" y="51" width="10" height="23" rx="4" fill="#3A3010"/><circle cx="40" cy="29" r="27" fill="#2A6E34"/><circle cx="40" cy="22" r="23" fill="#34824A"/><circle cx="15" cy="32" r="17" fill="#2A6E34" opacity=".75"/><circle cx="65" cy="32" r="17" fill="#2A6E34" opacity=".75"/><circle cx="40" cy="5" r="14" fill="#34824A"/><circle cx="33" cy="22" r="3.4" fill="#fff"/><circle cx="47" cy="22" r="3.4" fill="#fff"/><circle cx="34" cy="22.5" r="2" fill="#0A2A10"/><circle cx="48" cy="22.5" r="2" fill="#0A2A10"/><circle cx="34.8" cy="21.5" r=".8" fill="#fff"/><circle cx="48.8" cy="21.5" r=".8" fill="#fff"/><path d="M32 29 Q40 35 48 29" stroke="#0A2A10" stroke-width="2" fill="none" stroke-linecap="round"/><text x="6" y="14" font-size="8" opacity=".4">✦</text></svg>`,
+  19: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="35" y="51" width="10" height="23" rx="4" fill="#3A3010"/><circle cx="40" cy="28" r="28" fill="#286832"/><circle cx="40" cy="21" r="24" fill="#327E46"/><circle cx="14" cy="31" r="18" fill="#286832" opacity=".75"/><circle cx="66" cy="31" r="18" fill="#286832" opacity=".75"/><circle cx="40" cy="4" r="14" fill="#327E46"/><circle cx="33" cy="22" r="3.5" fill="#fff"/><circle cx="47" cy="22" r="3.5" fill="#fff"/><circle cx="34.2" cy="22.5" r="2" fill="#0A1A08"/><circle cx="48.2" cy="22.5" r="2" fill="#0A1A08"/><circle cx="35" cy="21.5" r=".8" fill="#fff"/><circle cx="49" cy="21.5" r=".8" fill="#fff"/><path d="M32 29 Q40 35 48 29" stroke="#0A1A08" stroke-width="2" fill="none" stroke-linecap="round"/><text x="8" y="14" font-size="8" opacity=".4">✦</text><text x="62" y="12" font-size="7" opacity=".35">✦</text></svg>`,
+  25: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="35" y="52" width="10" height="22" rx="4" fill="#3A5A20"/><circle cx="40" cy="28" r="28" fill="#266030"/><circle cx="40" cy="21" r="24" fill="#2E7238"/><circle cx="13" cy="32" r="18" fill="#266030" opacity=".8"/><circle cx="67" cy="32" r="18" fill="#266030" opacity=".8"/><circle cx="40" cy="4" r="14" fill="#2E7238"/><circle cx="33" cy="22" r="3.5" fill="#fff"/><circle cx="47" cy="22" r="3.5" fill="#fff"/><circle cx="34.2" cy="22.5" r="2" fill="#0A1A08"/><circle cx="48.2" cy="22.5" r="2" fill="#0A1A08"/><circle cx="35" cy="21.5" r=".8" fill="#fff"/><circle cx="49" cy="21.5" r=".8" fill="#fff"/><path d="M32 29 Q40 35 48 29" stroke="#0A1A08" stroke-width="2" fill="none" stroke-linecap="round"/><text x="5" y="12" font-size="9" opacity=".45">✦</text><text x="63" y="10" font-size="8" opacity=".4">✦</text></svg>`,
+  40: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="35" y="50" width="10" height="24" rx="4" fill="#2A4A18"/><circle cx="40" cy="28" r="28" fill="#1E5428"/><circle cx="40" cy="21" r="24" fill="#266032"/><circle cx="12" cy="31" r="19" fill="#1E5428"/><circle cx="68" cy="31" r="19" fill="#1E5428"/><circle cx="40" cy="3" r="15" fill="#266032"/><circle cx="33" cy="22" r="3.5" fill="#fff"/><circle cx="47" cy="22" r="3.5" fill="#fff"/><circle cx="34.2" cy="22.5" r="2" fill="#081408"/><circle cx="48.2" cy="22.5" r="2" fill="#081408"/><circle cx="35" cy="21.5" r=".8" fill="#fff"/><circle cx="49" cy="21.5" r=".8" fill="#fff"/><path d="M31 29 Q40 35 49 29" stroke="#081408" stroke-width="2" fill="none" stroke-linecap="round"/><text x="3" y="12" font-size="9" opacity=".5">✨</text><text x="63" y="10" font-size="9" opacity=".5">✨</text></svg>`,
+  75: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="35" y="50" width="10" height="24" rx="4" fill="#1A3A10"/><circle cx="40" cy="26" r="30" fill="#1A4E22"/><circle cx="40" cy="19" r="26" fill="#205C2A"/><circle cx="10" cy="30" r="20" fill="#1A4E22"/><circle cx="70" cy="30" r="20" fill="#1A4E22"/><circle cx="40" cy="0" r="16" fill="#205C2A"/><circle cx="33" cy="20" r="3.5" fill="#fff"/><circle cx="47" cy="20" r="3.5" fill="#fff"/><circle cx="34.2" cy="20.5" r="2" fill="#050E04"/><circle cx="48.2" cy="20.5" r="2" fill="#050E04"/><circle cx="35" cy="19.5" r=".8" fill="#fff"/><circle cx="49" cy="19.5" r=".8" fill="#fff"/><path d="M31 27 Q40 33 49 27" stroke="#050E04" stroke-width="2" fill="none" stroke-linecap="round"/><text x="2" y="11" font-size="10" opacity=".55">✨</text><text x="62" y="9" font-size="10" opacity=".55">✨</text><text x="2" y="66" font-size="9" opacity=".4">✨</text></svg>`,
+  100: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="35" y="48" width="10" height="26" rx="4" fill="#3A5A20"/><circle cx="40" cy="28" r="30" fill="#2A5C2A"/><circle cx="40" cy="22" r="26" fill="#3A6E3A"/><circle cx="16" cy="32" r="18" fill="#2A5C2A"/><circle cx="64" cy="32" r="18" fill="#2A5C2A"/><circle cx="40" cy="8" r="14" fill="#3A6E3A"/><circle cx="33" cy="24" r="3.5" fill="#fff"/><circle cx="47" cy="24" r="3.5" fill="#fff"/><circle cx="34.2" cy="24.5" r="2" fill="#0A1A08"/><circle cx="48.2" cy="24.5" r="2" fill="#0A1A08"/><circle cx="35" cy="23.5" r=".8" fill="#fff"/><circle cx="49" cy="23.5" r=".8" fill="#fff"/><path d="M32 31 Q40 37 48 31" stroke="#0A1A08" stroke-width="2" fill="none" stroke-linecap="round"/><text x="4" y="12" font-size="10">✨</text><text x="64" y="10" font-size="10">✨</text><text x="4" y="66" font-size="10">✨</text><text x="64" y="66" font-size="10">✨</text></svg>`
+};
+
+function getTreeSvg(lv){
+  const keys=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30,40,50,75,100];
+  let k=1;
+  for(const key of keys){if(lv>=key)k=key;}
+  return TREE_SVGS[k]||TREE_SVGS[1];
+}
+
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const TRIVIA=['プラスチックが海に流れると分解に最大500年かかります。','ペットボトル1本のリサイクルで電球を約6時間点灯できます。','アルミ缶1本のリサイクルでテレビを約3時間分の電力を節約できます。','給水ボトルを1年使うと約500本分のペットボトルを削減できます。','段ボールは95%以上がリサイクルされる優秀な素材です！'];
+
+const LV_THRESHOLDS=(()=>{const t=[0];let total=0;for(let lv=1;lv<=100;lv++){const needed=lv===1?3:Math.round(3*Math.pow(1.6,lv-1));total+=needed;t.push(total);}return t;})();
+function calcLv(scans){scans=scans??S.totalScans;for(let lv=100;lv>=1;lv--){if(scans>=LV_THRESHOLDS[lv-1])return lv;}return 1;}
+function lvNeededToNext(lv){return LV_THRESHOLDS[lv]-LV_THRESHOLDS[lv-1];}
+function lvProgressInCurrent(lv,scans){return scans-LV_THRESHOLDS[lv-1];}
+const LV_NAMES={1:'エコの卵',2:'若葉',3:'桜の木',4:'ふたごの木',5:'大木',6:'芽吹きの樹',7:'若緑の木',8:'竹の武士',9:'育ちの木',10:'エコ実践者',11:'深緑の木',12:'南国の使者',13:'南国の木',14:'椰子の実の木',15:'エコ探求者',16:'深根の木',17:'古株の樹',18:'大枝の木',19:'空に届く木',20:'森の番人',25:'古森の主',30:'エコ伝道師',40:'みどりの賢者',50:'命の継ぎ手',75:'千年の樹',100:'命の樹'};
+function lvName(lv){let n='エコの卵';for(const k of Object.keys(LV_NAMES).map(Number).sort((a,b)=>a-b)){if(lv>=k)n=LV_NAMES[k];}return n;}
+function lvBonus(lv){return Math.round(10+lv*2);}
+
+const TREES=[
+  {lv:1,nm:'エコの卵 / 若芽',story:'一粒の種が土の中で目を覚ます。まだ光を知らない小さな命。あなたが初めて分別をした日、この芽は生まれた。雨が降るたびに少しだけ背が伸び、土の栄養を吸い上げる。ただ上へ、上へと伸びようとしている。'},
+  {lv:2,nm:'若葉',story:'土を突き破り、初めて太陽の光を浴びた。緑の葉は光合成を始め、空気を少しずつきれいにしていく。あなたの積み重ねが、この葉に光を与えている。風が吹けば揺れるけれど、根はしっかり地面を掴んでいる。'},
+  {lv:3,nm:'桜の木',story:'春になると淡いピンクの花が咲き乱れ、人々の心を和ませる。散った花びらは土に還り、次の命の糧になる。桜は散ることを恐れない。なぜなら、また必ず咲けることを知っているから。'},
+  {lv:4,nm:'ふたごの木',story:'2本の若木が寄り添いながら成長している。根はまだ細いが、お互いを支え合うことで嵐にも負けない。あなたのエコへの想いが、少しずつ形になってきた。小さな緑が、やがて大きな森になる。'},
+  {lv:5,nm:'大木',story:'幹が太くなり、枝を大きく広げた。鳥たちが巣を作り、小さな虫たちが住処を見つける。あなたの行動が生態系の一部を支え始めた。この木の年輪を数えれば、あなたの歩みが刻まれている。'},
+  {lv:6,nm:'芽吹きの樹',story:'新しい枝が四方に広がり始めた。雨水を根が吸い上げ、葉の先から水分を放出する。その蒸散が周りの空気を冷やし、近くにいる生き物に恵みをもたらす。継続の力が、確かな形になってきた。'},
+  {lv:7,nm:'若緑の木',story:'柔らかな若緑が眩しい。まだ細い幹だが、内側には強靭な繊維が育ちつつある。小鳥がひと休みに立ち寄り、短い歌を残していった。あなたの習慣が、自然との小さな縁を結び始めた。'},
+  {lv:8,nm:'竹林',story:'一本が百本になった。竹は地下茎でつながり、仲間と支え合いながら成長する。あなたのエコ活動が周りの人々にも広がり始めた頃、この竹林は生まれた。'},
+  {lv:9,nm:'育ちの木',story:'ひとまわり大きくなった幹が、確かな存在感を放つ。根は縦横に広がり、土の中の微生物と共存している。土が豊かになれば、その恵みは雨と共に川へ、海へと届いていく。'},
+  {lv:10,nm:'エコ実践者の樹',story:'節目のレベル10。あなたの行動は確かな習慣になった。この木はもう嵐に揺れても倒れない。根が深く、幹が厚く、枝が広い。地道に続けてきたことへの、自然からの答えだ。'},
+  {lv:11,nm:'深緑の木',story:'葉の色が濃く深くなった。光を余すことなく受け取り、光合成の効率が上がっている。この木のそばに座ると、不思議と心が落ち着く。あなたの積み重ねが、安らぎを生み出し始めた。'},
+  {lv:12,nm:'ヤシの木',story:'南の島の砂浜に立ち、波の音を聞きながら実を結ぶ。あなたの積み重ねが、遠く離れた土地にまで届き始めた。潮風に揺れながらも倒れないのは、柔軟さと強さを兼ね備えているから。'},
+  {lv:13,nm:'南国の木',story:'熱帯の太陽を一身に浴び、豊かに葉を茂らせる。赤道に近い地で育つこの木は、地球上で最も多くの酸素を生み出す仲間たちの一員だ。あなたの行動が、遥か遠くの森を守っている。'},
+  {lv:14,nm:'椰子の実の木',story:'実が熟れ、波に運ばれ、新たな地に根付く。命は海を越える。あなたのエコの想いも、誰かの心に種として落ちていく。知らないうちに、あなたは誰かの始まりになっていた。'},
+  {lv:15,nm:'エコ探求者の樹',story:'Lv.15。ここまで来たあなたは、もう確かな探求者だ。枝の先まで養分が行き渡り、葉の一枚一枚が輝いている。この木に宿る生命の密度は、始めた頃とは比べ物にならない。'},
+  {lv:16,nm:'深根の木',story:'地上よりも、地下に広がる根の方が大きくなった。見えないところで支えるもの、それが真の強さだ。あなたの行動も、表には見えない多くの命を静かに支えている。'},
+  {lv:17,nm:'古株の樹',story:'切り株から新芽が出るように、この木は何度でも蘇る。挫けそうになった日も、少し分別をサボった日も、あなたはまた戻ってきた。その回復力こそが、この木の一番の強さだ。'},
+  {lv:18,nm:'大枝の木',story:'主幹から太い枝が四方へ伸び、それぞれが独立した木のような存在感を放つ。ひとつの行動がたくさんの可能性を生む。あなたのエコ活動も、今や多くの枝葉を持ち始めた。'},
+  {lv:19,nm:'空に届く木',story:'梢が雲に触れる高さまで伸びた。雨粒が葉に触れるより先に、霧を吸収して水分を得る。天と地をつなぐこの木のように、あなたの行動が空と大地の循環の一部になっている。'},
+  {lv:20,nm:'巨木',story:'樹齢数百年。この木が見てきたものは、戦争も、平和も、人の笑顔も、涙も。あなたが積み上げてきた行動の重さが、この木に宿っている。根は地球の核心まで届き、枝は空の果てを目指す。'},
+  {lv:25,nm:'古森の主',story:'森の中心に立ち、周囲の木々を見守る長老。その幹に触れると、長い年月の記憶が伝わってくるようだ。あなたのエコへの歩みは、もはや個人の習慣を超えて、ひとつの物語になった。'},
+  {lv:30,nm:'実りの森',story:'春に芽吹き、夏に茂り、秋に実り、冬に眠る。森は一本の木ではなく、無数の命の集合体だ。あなたのエコ活動が多くの人々を巻き込み、社会の一部を変え始めた。'},
+  {lv:40,nm:'みどりの賢者の樹',story:'Lv.40の木は、もう何も語らない。ただそこに在るだけで、周りの空気が変わる。若い木々が、その姿を目指して伸びていく。賢者とは、語るのではなく在り方で示すものだ。'},
+  {lv:50,nm:'森の守護者',story:'山の頂から見渡せば、緑の絨毯が地平線まで続く。あなたはもう単なるエコ活動家ではない、森の守護者だ。自然は恩返しを忘れない。どんな嵐の夜も、この山だけは揺るがない。'},
+  {lv:75,nm:'千年の樹',story:'千年の時を超えて立ち続ける。人の寿命を遥かに超えた命が、静かに空気を作り続ける。あなたの行動はもはや、今だけではなく未来の世代への贈り物だ。根は千年先まで繋がっている。'},
+  {lv:100,nm:'命の樹',story:'Lv.100。これは終わりではなく、新たな始まりだ。あなたの積み重ねた行動は、もはや個人の話ではない。命の樹は枯れない。なぜなら、その根はあなたの心の中にあるから。'}
+];
+
+const META=[
+  {e:'🌲',l:'杉の木が吸収',src:'co2',div:5500/365,u:'日分'},
+  {e:'🚗',l:'車の走行削減',src:'co2',div:130,u:'km分'},
+  {e:'📱',l:'スマホ充電',src:'co2',div:8,u:'回分'},
+  {e:'❄️',l:'エアコン節約',src:'co2',div:140,u:'時間分'},
+  {e:'🧴',l:'ペットボトル削減',src:'garbage',div:30,u:'本分'},
+  {e:'🥫',l:'アルミ缶削減',src:'garbage',div:15,u:'本分'},
+];
+
+const BADGES=[
+  {id:'first', e:'🌱',nm:'初分別',   desc:'初めてゴミを分別した日。あなたのエコの旅が始まった瞬間。',pts:15,cond:()=>S.totalScans>=1},
+  {id:'scan10',e:'🎯',nm:'10回達成', desc:'分別10回突破！習慣が芽生え始めている。',pts:20,cond:()=>S.totalScans>=10},
+  {id:'streak7',e:'🔥',nm:'7日連続', desc:'7日間毎日分別を続けた。継続は力なり！',pts:30,cond:()=>S.streakDays>=7},
+  {id:'scan50',e:'💎',nm:'50回達成', desc:'50回の分別。もうエコのプロだ。',pts:50,cond:()=>S.totalScans>=50},
+  {id:'co2_1kg',e:'🌍',nm:'1kg削減', desc:'CO₂を1kg削減。杉の木が182日吸収する量。',pts:60,cond:()=>S.totalCo2g>=1000},
+  {id:'scan100',e:'🏆',nm:'100回達成',desc:'100回。確実に地球を変えている。',pts:80,cond:()=>S.totalScans>=100},
+  {id:'co2_5kg',e:'🌟',nm:'5kg削減', desc:'CO₂を5kg削減。地球への大きな贈り物。',pts:100,cond:()=>S.totalCo2g>=5000},
+];
+
+const AVATAR_EMOJIS=['🌱','🌿','🌸','🌳','🎋','🌴','🌲','🌾','🐢','🦊','🐬','🦁','🐼','🌊','🌈','⭐','🍀','🎯','🌏','♻️'];
+let tmpAvatar=null,tmpAvatarPhoto=null;
+
+// ══════════════════════════════════════════
+// SCAN ITEMS
+// ══════════════════════════════════════════
+const SCAN_LIMIT=50;
+const WASTE=[
+  {t:'ペットボトル', e:'🧴', p:2,  c:35, wg:30,  quest:true,  bin:'プラスチック容器ゴミ'},
+  {t:'アルミ缶',    e:'🥫', p:3,  c:45, wg:15,  quest:false, bin:'缶ゴミ（資源ゴミ）'},
+  {t:'スチール缶',  e:'🫙', p:2,  c:30, wg:40,  quest:false, bin:'缶ゴミ（資源ゴミ）'},
+  {t:'プラスチック',e:'♻️', p:2,  c:25, wg:20,  quest:false, bin:'プラスチック容器ゴミ'},
+  {t:'紙類',        e:'📄', p:1,  c:18, wg:100, quest:false, bin:'紙ゴミ（資源ゴミ）'},
+  {t:'ガラス瓶',   e:'🍶', p:2,  c:22, wg:200, quest:false, bin:'びん・かん（資源ゴミ）'},
+  {t:'段ボール',   e:'📦', p:2,  c:15, wg:500, quest:false, bin:'段ボール（資源ゴミ）'},
+];
+let curW=null,scanning=false;
+
+// ══════════════════════════════════════════
+// VIDEO BONUS
+// ══════════════════════════════════════════
+const VID_THRESHOLD=300;
+const VID_DAY_MAX=15;
+const VIDEO_BONUS_PT=6; // 通常時の動画ボーナス上限
+const FRIENDS_BASE=[150,87,63,0]; // 松茸150+公式おじさん87+める63+りさ0=300g（RD.friendと同期）
+function friendDayTotal(){return FRIENDS_BASE.reduce((a,b)=>a+b,0)+S.totalCo2g;}
+function calcV(){return Math.max(0,Math.min(Math.floor(friendDayTotal()/VID_THRESHOLD)-(S.videoWatchCount||0),VID_DAY_MAX-(S.videoWatchCount||0)));}
+
+// ══════════════════════════════════════════
+// AVATAR
+// ══════════════════════════════════════════
+function renderAvatarInner(el){
+  if(S.avatarPhoto){el.innerHTML=`<img src="${S.avatarPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:999px">`;}
+  else{el.textContent=S.avatar||'🌱';}
+}
+function openAvatarPicker(){
+  tmpAvatar=S.avatar;tmpAvatarPhoto=S.avatarPhoto;
+  document.getElementById('av-grid-emoji').innerHTML=AVATAR_EMOJIS.map(em=>`<div class="av-item${S.avatar===em&&!S.avatarPhoto?' sel':''}" onclick="selectAvatarEmoji('${em}',this)">${em}</div>`).join('');
+  document.getElementById('avatar-modal').style.display='flex';
+}
+function selectAvatarEmoji(em,el){tmpAvatar=em;tmpAvatarPhoto=null;document.querySelectorAll('.av-item').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');}
+function handleAvPhoto(inp){if(!inp.files||!inp.files[0])return;const r=new FileReader();r.onload=e=>{tmpAvatarPhoto=e.target.result;tmpAvatar=null;document.querySelectorAll('.av-item').forEach(x=>x.classList.remove('sel'));};r.readAsDataURL(inp.files[0]);inp.value='';}
+function saveAvatar(){S.avatar=tmpAvatar||S.avatar;S.avatarPhoto=tmpAvatarPhoto;sv();closeM('avatar-modal');renderAvatarInner(document.getElementById('myp-av-inner'));toast('アイコンを更新しました ✅');}
+
+// ══════════════════════════════════════════
+// ROUTING
+// ══════════════════════════════════════════
+const HT=TRIVIA[Math.floor(Math.random()*TRIVIA.length)];
+function showTab(tab){
+  if(!S.registered&&tab!=='register'){toast('まずニックネームを登録してください 👆');return;}
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+tab).classList.add('active');
+  // ナビバーのアクティブ状態を同期
+  document.querySelectorAll('.bnt[data-tab]').forEach(b=>{
+    b.classList.toggle('on', b.dataset.tab===tab);
+  });
+  if(tab==='home')updH();
+  if(tab==='mypage')updM();
+  if(tab==='ranking')updRk();
+  if(tab==='scan')updScan();
+}
+function doReg(){
+  const n=document.getElementById('reg-nm').value.trim()||'エコ太郎';
+  S.name=n;S.handle='@'+n.toLowerCase().replace(/[^\w]/g,'').slice(0,12)||'@user';
+  S.registered=true;S.points+=10;sv();checkBadges();showTab('home');
+}
+
+// ══════════════════════════════════════════
+// HOME
+// ══════════════════════════════════════════
+let mc=null,cp='day',metaOpen=false;
+function getChartData(){
+  const dow=new Date().getDay();
+  const dayLabels=['日','月','火','水','木','金','土'];
+  // 今日の曜日インデックスを最後に、残りはダミーデータ
+  const base=[12,18,9,22,15,28,31];
+  const reordered=[];const lbls=[];
+  for(let i=0;i<7;i++){const idx=(dow-6+i+7)%7;lbls.push(dayLabels[idx]);reordered.push(base[idx]);}
+  reordered[6]=Math.max(S.totalCo2g,reordered[6]); // 今日は実値（少なくともデモ値以上）
+  return {day:{l:lbls,d:reordered},month:{l:['1月','2月','3月','4月','5月','6月'],d:[120,180,210,165,240,Math.max(312,S.totalCo2g)]},year:{l:['2022','2023','2024','2025','2026'],d:[800,1200,1800,2400,Math.max(3100,S.totalCo2g)]}};
+}
+function getCD(){return getChartData();}
+const CAL_H=[6,7,8,10,12,13,15,17,20,21];
+const CAL_D={6:{c:'35g',p:'7本'},7:{c:'42g',p:'9本'},8:{c:'28g',p:'5本'},10:{c:'51g',p:'11本'},12:{c:'39g',p:'8本'},13:{c:'44g',p:'9本'},15:{c:'60g',p:'13本'},17:{c:'31g',p:'6本'},20:{c:'48g',p:'10本'},21:{c:'35g',p:'7本'}};
+
+function updH(){
+  checkBadges();
+  const lv=calcLv();
+  const pts=S.points;
+  document.getElementById('h-pts-pill').textContent=pts.toLocaleString()+'pt';
+  document.getElementById('h-pts-card').innerHTML=pts.toLocaleString()+'<span style="font-size:16px;font-weight:600;vertical-align:super;margin-left:2px">pt</span>';
+  document.getElementById('h-streak').textContent=S.streakDays;
+  document.getElementById('h-lv').textContent=lv;
+  document.getElementById('h-triv').textContent=HT;
+  document.getElementById('h-tree-svg').innerHTML=getTreeSvg(lv);
+  // quest
+  const questItem=WASTE.find(w=>w.quest);
+  if(questItem){
+    const qTitle=document.getElementById('h-quest-title');
+    const qBonus=document.getElementById('h-quest-bonus');
+    if(qTitle)qTitle.textContent=`${questItem.e} ${questItem.t}を分別しよう！`;
+    if(qBonus)qBonus.textContent=`ボーナス +${questItem.p*10}pt`;
+  }
+  if(S.questCompleted){const q=document.getElementById('h-quest');if(q)q.style.display='none';}
+  // duo
+  const co2=S.totalCo2g,g=S.totalGarbageG;
+  document.getElementById('h-duo').innerHTML=[
+    {v:co2>=1000?(co2/1000).toFixed(2)+'kg':co2+'g',u:'CO₂削減',l:'二酸化炭素'},
+    {v:g>=1000?(g/1000).toFixed(1)+'kg':g+'g',u:'ごみ削減',l:'廃棄物'}
+  ].map(x=>`<div class="duo-c"><div class="duo-v">${x.v}</div><div class="duo-u">${x.u}</div><div class="duo-l">${x.l}</div></div>`).join('');
+  // meta
+  if(co2===0&&g===0){
+    document.getElementById('meta-panel').innerHTML='<div style="text-align:center;padding:16px 0;font-size:13px;color:var(--sub)">まだデータがありません。<br>分別を記録すると表示されます！</div>';
+  } else {
+    document.getElementById('meta-panel').innerHTML=META.map(m=>{
+      const base=m.src==='co2'?co2:g;if(base===0)return'';
+      const val=base/m.div;
+      let d=val>=1000?Math.round(val).toLocaleString():val>=10?(Math.round(val*10)/10):val>=1?(Math.round(val*100)/100):'<1';
+      return`<div class="meta-row"><div class="meta-e2">${m.e}</div><div style="flex:1"><div class="meta-n2">${d}${m.u}</div><div class="meta-d2">${m.l}</div></div></div>`;
+    }).filter(Boolean).join('');
+  }
+  // history
+  document.getElementById('h-hist').innerHTML=S.history.length?S.history.slice(0,5).map(r=>`<div class="act-r"><div class="act-i">${r.e}</div><div style="flex:1"><div style="font-size:13px;font-weight:700">${r.t}${r.q?' <span style="font-size:10px;background:#FFF3DB;color:#A37B00;padding:2px 6px;border-radius:999px;font-weight:700">クエスト</span>':''}</div><div style="font-size:11px;color:var(--sub);margin-top:1px">${r.time}</div></div><div class="act-p">+${r.p}pt</div></div>`).join(''):'<div class="act-r" style="justify-content:center"><span style="font-size:13px;color:var(--sub)">まだ記録がありません</span></div>';
+  buildChart(cp);
+}
+function toggleMeta(){metaOpen=!metaOpen;document.getElementById('meta-panel').classList.toggle('open',metaOpen);document.getElementById('meta-chevron').textContent=metaOpen?'↑':'›';document.getElementById('meta-btn-sub').textContent=metaOpen?'閉じる':'タップして確認する';}
+function setChartP(p,btn){document.querySelectorAll('#c-tabs .ptb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');cp=p;buildChart(p);}
+function buildChart(p){
+  const ctx=document.getElementById('myChart');if(!ctx)return;if(mc)mc.destroy();
+  const d=getChartData()[p];
+  mc=new Chart(ctx,{type:'line',data:{labels:d.l,datasets:[{label:'CO₂(g)',data:d.d,borderColor:'#2E6044',backgroundColor:'rgba(46,96,68,.07)',borderWidth:2.5,pointBackgroundColor:'#2E6044',pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:4,tension:.4,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#6B8C77'}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#6B8C77'},beginAtZero:true}}}});
+}
+function openCal(){
+  document.getElementById('cal-modal').style.display='flex';
+  const days=['日','月','火','水','木','金','土'];
+  let h='<div class="cal-g">'+days.map(d=>`<div class="cal-hd">${d}</div>`).join('');
+  for(let i=0;i<3;i++)h+='<div></div>';
+  for(let d=1;d<=31;d++){const has=CAL_H.includes(d),tod=d===17;h+=`<button class="cal-d${tod?' tod':has?' has':''}" onclick="showCalD(${d})">${d}</button>`;}
+  h+='</div>';document.getElementById('cal-g').innerHTML=h;
+}
+function showCalD(d){const x=CAL_D[d];if(!x)return;document.getElementById('cal-det').style.display='block';document.getElementById('cal-date').textContent=`5月${d}日の実績`;document.getElementById('cal-co2').textContent=x.c;document.getElementById('cal-pet').textContent=x.p+'削減';}
+
+// ══════════════════════════════════════════
+// SCAN
+// ══════════════════════════════════════════
+function updScan(){
+  const cnt=S.todayScans;
+  document.getElementById('s-cnt').textContent=cnt;
+  document.getElementById('s-pts-pill').textContent=S.points.toLocaleString()+'pt';
+  document.getElementById('s-prog').style.width=Math.min(cnt/SCAN_LIMIT*100,100)+'%';
+  // quest title
+  const questItem=WASTE.find(w=>w.quest);
+  const sqTitle=document.getElementById('sq-quest-title');
+  if(sqTitle&&questItem)sqTitle.textContent=`${questItem.e} ${questItem.t}を分別しよう！`;
+  if(S.questCompleted){const sw=document.getElementById('sq-wrap');if(sw)sw.style.display='none';}
+  if(cnt>=SCAN_LIMIT)showSS('limit');else showSS('idle');
+}
+function showSS(s){['idle','scanning','result','limit'].forEach(x=>{const el=document.getElementById('s-'+x);if(el)el.style.display=x===s?'flex':'none';});if(s==='idle'){scanning=false;const btn=document.getElementById('scan-cam-btn');if(btn)btn.disabled=false;}}
+// ── APIキーモーダル ─────────────────────────────────────────
+function showApiKeyModal(){
+  let m=document.getElementById('apikey-modal');
+  if(!m){
+    m=document.createElement('div');m.id='apikey-modal';
+    m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
+    m.innerHTML=`<div style="background:#fff;border-radius:24px;padding:28px 24px;width:100%;max-width:360px;font-family:inherit">
+      <div style="font-size:18px;font-weight:800;color:#1A3D2B;margin-bottom:6px">🔑 Gemini APIキーを設定</div>
+      <div style="font-size:13px;color:#728C7E;margin-bottom:18px;line-height:1.6">AIスキャン機能を使うにはGemini APIキーが必要です。キーはこのデバイスにのみ保存されます。</div>
+      <input id="apikey-input" type="password" placeholder="AIza..." style="width:100%;border:1.5px solid #E6F0EB;border-radius:12px;padding:12px 14px;font-size:14px;font-family:inherit;margin-bottom:12px;outline:none">
+      <button onclick="saveApiKey()" style="width:100%;background:#1A3D2B;color:#fff;border-radius:12px;padding:13px;font-size:14px;font-weight:700;font-family:inherit;border:none;cursor:pointer;margin-bottom:8px">保存してスキャン開始</button>
+      <button onclick="document.getElementById('apikey-modal').style.display='none'" style="width:100%;background:transparent;color:#728C7E;border:none;padding:8px;font-size:13px;font-family:inherit;cursor:pointer">キャンセル</button>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  m.style.display='flex';
+  setTimeout(()=>document.getElementById('apikey-input')?.focus(),100);
+}
+function saveApiKey(){
+  const k=document.getElementById('apikey-input')?.value?.trim();
+  if(!k){toast('APIキーを入力してください');return;}
+  localStorage.setItem('gemini_api_key',k);
+  document.getElementById('apikey-modal').style.display='none';
+  toast('✅ APIキーを保存しました');
+}
+
+// ── Gemini AI判定 ────────────────────────────────────────────
+async function analyzeWithGemini(base64Image){
+  const apiKey=localStorage.getItem('gemini_api_key');
+  if(!apiKey)throw new Error('NO_KEY');
+  const prompt=`この画像に写っているゴミを判定してください。以下のカテゴリのどれか1つだけをJSON形式で返してください。他の文字は一切不要です。カテゴリ: ペットボトル, アルミ缶, スチール缶, プラスチック, 紙類, ガラス瓶, 段ボール。もしゴミが写っていない・判定できない場合は category を "不明" にしてください。形式: {"category":"ペットボトル","confidence":0.95}`;
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:'image/jpeg',data:base64Image}},{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:100}})
+  });
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'APIエラー');}
+  const data=await res.json();
+  const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  return JSON.parse(text.replace(/```json|```/g,'').trim());
+}
+
+// ── カメラ・ライブラリ ────────────────────────────────────────
+function startScan(){
+  if(scanning)return;
+  if(S.todayScans>=SCAN_LIMIT){showSS('limit');return;}
+  if(!localStorage.getItem('gemini_api_key')){showApiKeyModal();return;}
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='image/*';inp.capture='environment';
+  inp.style.display='none';document.body.appendChild(inp);
+  inp.onchange=()=>{if(inp.files&&inp.files[0])processImage(inp.files[0]);document.body.removeChild(inp);};
+  inp.click();
+}
+function handleLib(inp){
+  if(!inp.files||!inp.files[0]||scanning)return;
+  if(S.todayScans>=SCAN_LIMIT){showSS('limit');return;}
+  if(!localStorage.getItem('gemini_api_key')){showApiKeyModal();return;}
+  processImage(inp.files[0]);inp.value='';
+}
+function processImage(file){
+  scanning=true;showSS('scanning');
+  const reader=new FileReader();
+  reader.onload=async(e)=>{await doDetect(e.target.result.split(',')[1]);};
+  reader.readAsDataURL(file);
+}
+async function doDetect(base64){
+  try{
+    let category='不明';
+    try{
+      const result=await analyzeWithGemini(base64);
+      category=result?.category||'不明';
+    }catch(err){
+      if(err.message==='NO_KEY'){showApiKeyModal();scanning=false;showSS('idle');return;}
+      toast('⚠️ '+err.message);scanning=false;showSS('idle');return;
+    }
+    if(category==='不明'){toast('ゴミを検出できませんでした。もう一度撮影してください。');scanning=false;showSS('idle');return;}
+    curW=WASTE.find(w=>w.t===category)||WASTE[0];
+  document.getElementById('r-emoji').textContent=curW.e;
+  document.getElementById('r-type').textContent=curW.t;
+  const binEl=document.getElementById('r-bin');if(binEl)binEl.textContent=curW.bin||'資源ゴミ';
+  const isQ=!S.questCompleted&&curW.quest;
+  const pts=curW.p+(isQ?20:0);
+  document.getElementById('r-pts').textContent='+'+pts+'pt';
+  document.getElementById('r-co2').textContent='CO₂ '+curW.c+'g 削減';
+  document.getElementById('r-quest-msg').style.display=isQ?'block':'none';
+  const cb=document.getElementById('r-confirm-btn');
+  cb.textContent='✅ そのままポイントをもらう（+'+pts+'pt）';cb.disabled=false;cb.onclick=confirmScan;
+  const isQpre=!S.questCompleted&&curW.quest;
+  const vidPts=isQpre ? curW.p*2+20 : Math.min(curW.p*2,VIDEO_BONUS_PT);
+  const vbTxt=document.getElementById('r-vid-pts-txt');
+  const vbSub=document.getElementById('r-vid-sub');
+  if(vbTxt)vbTxt.textContent='動画を見て '+vidPts+'pt ゲット！（2倍）';
+  if(vbSub)vbSub.textContent=isQpre?'基本'+curW.p+'pt×2＋クエスト20pt':'（通常'+curW.p+'ptの2倍、上限6pt）';
+  const vb=document.getElementById('r-vid-banner');
+  if(vb){vb.style.opacity='1';vb.style.pointerEvents='auto';}
+  showSS('result');
+  }catch(e){toast('エラーが発生しました');scanning=false;showSS('idle');}
+}
+function retake(){scanning=false;const btn=document.getElementById('scan-cam-btn');if(btn)btn.disabled=false;showSS('idle');}
+function confirmScan(){if(!curW)return;const cb=document.getElementById('r-confirm-btn');if(cb.disabled)return;cb.disabled=true;const isQ=!S.questCompleted&&curW.quest;addScan(curW,isQ);}
+
+function addScan(w,q){
+  if(S.todayScans>=SCAN_LIMIT){showSS('limit');scanning=false;return;}
+  const bonus=q?20:0,pts=w.p+bonus;
+  const prevLv=calcLv();
+  S.points+=pts;S.todayScans++;S.totalScans++;S.totalCo2g+=w.c;S.totalGarbageG+=(w.wg||30);
+  if(q)S.questCompleted=true;
+  S.history.unshift({t:w.t,e:w.e,p:pts,c:w.c,q,time:new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})});
+  if(S.history.length>50)S.history.pop();
+  sv();
+  const newLv=calcLv();checkBadges();
+  const fp=document.getElementById('fpt');fp.textContent='+'+pts+'pt';fp.classList.remove('go');void fp.offsetWidth;fp.classList.add('go');
+  toast('+'+pts+'pt'+(q?' 🎯 クエスト達成！':''));
+  if(newLv>prevLv)setTimeout(()=>showLvUp(newLv),1300);
+  // 記録完了 → 少し待ってホームへ
+  scanning=false;
+  updScan();
+  showSS('result');
+  // ポイント付与完了 → ホームへ戻るボタンに切り替え、動画バナーを非表示
+  const cb2=document.getElementById('r-confirm-btn');
+  if(cb2){cb2.onclick=()=>{showTab('home');};cb2.disabled=false;cb2.textContent='✅ ホームへ戻る';}
+  const vbAfter=document.getElementById('r-vid-banner');
+  if(vbAfter){vbAfter.style.opacity='.35';vbAfter.style.pointerEvents='none';}
+  const vbTxtAfter=document.getElementById('r-vid-pts-txt');
+  if(vbTxtAfter)vbTxtAfter.textContent='動画ボーナスは記録前のみ';
+}
+
+// ★ スキャン後の動画ボーナス
+// 動画を見て完了したら curW のポイント×2を付与してから記録
+function openScanVid(){
+  const watched=S.videoWatchCount||0;
+  if(watched>=VID_DAY_MAX){toast('本日の動画上限（'+VID_DAY_MAX+'回）に達しました');return;}
+  if(!curW){toast('この結果はすでに記録済みです');return;}
+  // ボーナスptをモーダルに表示
+  const isQopen=!S.questCompleted&&curW.quest;
+  const bonusPt=isQopen ? curW.p*2+20 : Math.min(curW.p*2,VIDEO_BONUS_PT);
+  const vst=document.getElementById('vid-st');
+  if(vst)vst.textContent='動画を見て +'+bonusPt+'pt ゲット！（2倍）';
+  const btn2=document.getElementById('vid-btn2');
+  if(btn2){btn2.textContent='動画を再生する ▶';btn2.onclick=playVid;}
+  vidFromScan=true;
+  document.getElementById('vid-modal').style.display='flex';
+}
+
+// ══════════════════════════════════════════
+// LEVEL UP
+// ══════════════════════════════════════════
+function showLvUp(lv){
+  const tree=TREES.slice().reverse().find(t=>lv>=t.lv)||TREES[0];
+  const bonus=lvBonus(lv);S.points+=bonus;sv();
+  document.getElementById('lvup-svg').innerHTML=getTreeSvg(lv);
+  document.getElementById('lvup-lbl').textContent='Lv.'+lv+' '+lvName(lv);
+  document.getElementById('lvup-pts').textContent='+'+bonus+'pt';
+  document.getElementById('lvup-unlock').textContent=tree.nm+' が解放されました！';
+  document.getElementById('lvup-modal').style.display='flex';
+  updH();
+}
+
+// ══════════════════════════════════════════
+// RANKING
+// ══════════════════════════════════════════
+const RD={
+  friend:[{n:'松茸',e:'🧔',c:150},{n:'公式おじさん',e:'🧑',c:87},{n:'たけ（あなた）',e:'🙋',c:0,me:true},{n:'める',e:'👩',c:63},{n:'りさ',e:'👧',c:0}],
+  area:[{n:'東区',e:'🏙️',c:4830},{n:'博多区',e:'🌆',c:4120},{n:'中央区',e:'🏢',c:3870},{n:'南区',e:'🏘️',c:2910},{n:'早良区（あなた）',e:'🌿',c:0,me:true}],
+  univ:[{n:'エコ大学',e:'🏫',c:23450},{n:'みどり高校',e:'🌿',c:18760},{n:'サステナブル中',e:'🌱',c:12340},{n:'九州工業大',e:'⚙️',c:9820},{n:'福岡大（あなた）',e:'📚',c:0,me:true}]
+};
+const PERIOD_MULT={day:1,week:7,month:30,year:365};
+let rkCat='friend',rkPer='day';
+function setRkCat(c,btn){rkCat=c;document.querySelectorAll('#cat-tabs .catb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderRk();}
+function setRkPer(p,btn){rkPer=p;document.querySelectorAll('#rk-p-tabs .ptb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderRk();}
+function updRk(){updVid();renderRk();}
+function fc(v){return Math.round(v).toLocaleString();}
+function renderRk(){
+  const f=PERIOD_MULT[rkPer];
+  const data=RD[rkCat].map(r=>({...r,c:r.me?Math.round(S.totalCo2g*f):Math.round(r.c*f)}));
+  const sorted=[...data].sort((a,b)=>b.c-a.c);
+  const tot=data.reduce((a,x)=>a+x.c,0);
+  const perLbl={day:'今日',week:'今週',month:'今月',year:'今年'}[rkPer];
+  document.getElementById('tm-val').innerHTML=fc(tot)+'<span style="font-size:17px;font-weight:600;vertical-align:super;margin-left:2px">g</span>';
+  document.getElementById('tm-sub').textContent={friend:'フレンド',area:'地域',univ:'大学'}[rkCat]+' · '+perLbl;
+  const top3=sorted.slice(0,3);const po=[top3[1],top3[0],top3[2]].filter(Boolean);
+  const PS=[{bd:'2px solid #C0C0C0',bg:'#F5F5F5',w:52,bh:34,bb:'linear-gradient(to top,#C0C0C0,#E8E8E8)',m:'🥈'},{bd:'3px solid #FFD700',bg:'#FFF9E0',w:64,bh:54,bb:'linear-gradient(to top,#FFD700,#FFE866)',m:'🥇'},{bd:'2px solid #CD7F32',bg:'#FDF2E9',w:48,bh:22,bb:'linear-gradient(to top,#CD7F32,#E8A060)',m:'🥉'}];
+  document.getElementById('rk-pod').innerHTML=po.map((r,i)=>{const s=PS[i];return`<div class="pod"><div>${s.m}</div><div class="pod-av" style="width:${s.w}px;height:${s.w}px;border:${s.bd};background:${s.bg}">${r.e}</div><div class="pod-nm">${r.n}</div><div class="pod-vl">${fc(r.c)}g</div><div class="pod-bar" style="height:${s.bh}px;width:46px;background:${s.bb}"></div></div>`;}).join('');
+  document.getElementById('rk-list').innerHTML=sorted.map((r,i)=>`<div class="rk-r${r.me?' me':''}"><div class="rk-n">${i+1}</div><div class="rk-av">${r.e}</div><div style="flex:1"><span class="rk-nm">${r.n}${r.me?'<span class="you">あなた</span>':''}</span><div style="font-size:10px;color:var(--sub)">${perLbl}</div></div><div><div class="rk-vl">${fc(r.c)}g</div><div style="font-size:10px;color:var(--sub)">CO₂削減</div></div></div>`).join('');
+}
+function filterRk(q){document.querySelectorAll('#rk-list .rk-r').forEach(r=>{const n=r.querySelector('.rk-nm').textContent.toLowerCase();r.style.display=q&&!n.includes(q.toLowerCase())?'none':'flex';});}
+
+function updVid(){
+  const rem=calcV(),watched=S.videoWatchCount||0;
+  const total=friendDayTotal();
+  const earned=Math.floor(total/VID_THRESHOLD);
+  const nextTarget=(earned+1)*VID_THRESHOLD;
+  const need=Math.max(0,nextTarget-total);
+  // 「次まであと」表示
+  const needEl=document.getElementById('vb-need-val');
+  if(needEl)needEl.textContent=need;
+  document.getElementById('vb-rem').textContent=rem;
+  document.getElementById('vb-threshold').textContent=VID_THRESHOLD;
+  const maxEl=document.getElementById('vb-max');if(maxEl)maxEl.textContent=VID_DAY_MAX;
+  const card=document.getElementById('vb-card');
+  const hdr=document.getElementById('vb-header');
+  const arrow=document.getElementById('vb-arrow');
+  if(watched>=VID_DAY_MAX){
+    document.getElementById('vb-ttl').textContent='本日の上限（'+VID_DAY_MAX+'回）に達しました';
+    if(card)card.style.opacity='.5';
+    if(card)card.style.pointerEvents='none';
+  } else if(rem>0){
+    document.getElementById('vb-ttl').textContent='動画ボーナス獲得可能！';
+    if(card){card.style.opacity='1';card.style.pointerEvents='auto';}
+  } else {
+    document.getElementById('vb-ttl').textContent='動画でボーナスポイントゲット！';
+    if(card){card.style.opacity='1';card.style.pointerEvents='auto';}
+  }
+}
+function tryVid(){
+  const watched=S.videoWatchCount||0;
+  if(watched>=VID_DAY_MAX){toast('本日の動画上限（'+VID_DAY_MAX+'回）に達しました');return;}
+  const total=friendDayTotal();
+  const mod=total%VID_THRESHOLD;
+  const need=mod===0&&total>0?0:VID_THRESHOLD-(mod||VID_THRESHOLD);
+  if(calcV()<=0){toast('あと'+need+'gでボーナス解放！');return;}
+  document.getElementById('vid-modal').style.display='flex';
+}
+let vtmr=null,vidFromScan=false;
+function closeVid(){
+  clearInterval(vtmr);
+  document.getElementById('vid-modal').style.display='none';
+  document.getElementById('vid-p').style.width='0%';
+  document.getElementById('vid-ico').textContent='▶️';
+  document.getElementById('vid-st').textContent='動画を見てボーナスポイントをゲット！';
+  const b=document.getElementById('vid-btn2');
+  if(b){b.textContent='動画を再生する ▶';b.onclick=playVid;}
+  if(vidFromScan){
+    vidFromScan=false;
+    // curWがnull=記録済みならホームへ、まだ記録中なら結果画面に残る
+    if(!curW)showTab('home');
+  }
+}
+function playVid(){
+  const prog=document.getElementById('vid-p'),st=document.getElementById('vid-st'),ico=document.getElementById('vid-ico'),btn=document.getElementById('vid-btn2');
+  ico.textContent='🎬';st.textContent='再生中...';btn.textContent='再生中...';btn.onclick=null;
+  let w=0;
+  vtmr=setInterval(()=>{
+    w=Math.min(w+2,100);prog.style.width=w+'%';
+    if(w>=100){
+      clearInterval(vtmr);
+      if(vidFromScan&&curW){
+        // スキャン経由：2倍ポイントで記録してから視聴カウント
+        const isQ=!S.questCompleted&&curW.quest;
+        const bonusPt=isQ ? curW.p*2+20 : Math.min(curW.p*2,VIDEO_BONUS_PT);
+        // addScan の代わりに 2倍ptで記録
+        if(S.todayScans<SCAN_LIMIT){
+          const prevLv=calcLv();
+          S.points+=bonusPt;S.todayScans++;S.totalScans++;S.totalCo2g+=curW.c;S.totalGarbageG+=(curW.wg||30);
+          if(isQ)S.questCompleted=true;
+          S.history.unshift({t:curW.t,e:curW.e,p:bonusPt,c:curW.c,q:isQ,time:new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})});
+          if(S.history.length>50)S.history.pop();
+          curW=null;
+          S.videoWatchCount=(S.videoWatchCount||0)+1;sv();
+          const newLv=calcLv();checkBadges();
+          if(newLv>prevLv)setTimeout(()=>showLvUp(newLv),1300);
+          const fp=document.getElementById('fpt');if(fp){fp.textContent='+'+bonusPt+'pt';fp.classList.remove('go');void fp.offsetWidth;fp.classList.add('go');}
+          toast('+'+bonusPt+'pt 動画ボーナス！🎬');
+          updVid();updH();updScan();
+          ico.textContent='🎉';st.textContent='完了！ +'+bonusPt+'pt 獲得！';
+        } else {
+          ico.textContent='😅';st.textContent='本日の上限に達しています';
+        }
+      } else {
+        // ランキング経由：固定ボーナス
+        const b=6;
+        S.points+=b;S.videoWatchCount=(S.videoWatchCount||0)+1;sv();updVid();updH();
+        ico.textContent='🎉';st.textContent='完了！ +'+b+'pt！';
+        toast('+'+b+'pt 動画ボーナス！🎬');
+      }
+      btn.textContent='とじる';btn.onclick=closeVid;
+    }
+  },60);
+}
+
+// ══════════════════════════════════════════
+// MYPAGE
+// ══════════════════════════════════════════
+function updM(){
+  const lv=calcLv();
+  const needed=lvNeededToNext(lv<100?lv+1:100);
+  const progress=lvProgressInCurrent(lv,S.totalScans);
+  const pct=lv>=100?100:Math.min(progress/needed*100,100);
+  document.getElementById('mp-nm').textContent=S.name;
+  document.getElementById('mp-hd').textContent=S.handle;
+  document.getElementById('mp-lv-tag').textContent='Lv.'+lv+' '+lvName(lv);
+  document.getElementById('mp-lv-progress-lbl').textContent=lv>=100?'MAX LEVEL':'次のLvまで '+progress+' / '+needed+' 回';
+  document.getElementById('mp-lv-bar').style.width=pct+'%';
+  document.getElementById('mp-pts').textContent=S.points.toLocaleString();
+  document.getElementById('mp-tpts').textContent=S.points.toLocaleString();
+  document.getElementById('mp-scns').textContent=S.totalScans+'回';
+  document.getElementById('mp-strk').textContent=S.streakDays+'日';
+  const c=S.totalCo2g;
+  document.getElementById('mp-co2').textContent=c>=1000?(c/1000).toFixed(2)+'kg':c+'g';
+  renderAvatarInner(document.getElementById('myp-av-inner'));
+  renderBadges();checkBadges();
+}
+
+// ══════════════════════════════════════════
+// ZK (TREE ENCYCLOPEDIA)
+// ══════════════════════════════════════════
+function openZkBook(){
+  const lv=calcLv();renderZkGrid(lv);
+  document.getElementById('zk-book-modal').style.display='flex';
+}
+function renderZkGrid(lv){
+  const items=[
+    {lv:1,nm:'若芽'},{lv:2,nm:'若葉'},{lv:3,nm:'桜'},{lv:4,nm:'ふたごの木'},{lv:5,nm:'大木'},
+    {lv:6,nm:'芽吹きの樹'},{lv:7,nm:'若緑の木'},{lv:8,nm:'竹林'},{lv:9,nm:'育ちの木'},
+    {lv:10,nm:'実践者の樹'},{lv:11,nm:'深緑の木'},{lv:12,nm:'ヤシ'},
+    {lv:13,nm:'南国の木'},{lv:14,nm:'椰子の実'},{lv:15,nm:'探求者の樹'},
+    {lv:16,nm:'深根の木'},{lv:17,nm:'古株の樹'},{lv:18,nm:'大枝の木'},{lv:19,nm:'空に届く木'},
+    {lv:20,nm:'巨木'},{lv:25,nm:'古森の主'},{lv:30,nm:'実り'},
+    {lv:40,nm:'賢者の樹'},{lv:50,nm:'守護者'},{lv:75,nm:'千年の樹'},{lv:100,nm:'命の樹'},
+  ];
+  const unlocked=items.filter(t=>lv>=t.lv);
+  const nextLocked=items.find(t=>lv<t.lv);
+  let html=unlocked.map(t=>`
+    <div class="zk unlocked" onclick="openTree(${t.lv})">
+      <div class="zk-char">${getTreeSvg(t.lv).replace('width="80"','width="60"').replace('height="80"','height="60"').replace('viewBox="0 0 80 80"','viewBox="0 0 80 80"')}</div>
+      <div class="zk-lv">Lv.${t.lv}</div>
+      <div class="zk-nm">${t.nm}</div>
+    </div>`).join('');
+  if(nextLocked){
+    html+=`<div class="zk lk">
+      <div class="zk-char" style="font-size:36px;display:flex;align-items:center;justify-content:center;height:72px">🔒</div>
+      <div class="zk-lv">Lv.${nextLocked.lv}</div>
+      <div class="zk-nm">???</div></div>`;
+  }
+  if(!unlocked.length){
+    html='<div style="text-align:center;padding:20px;font-size:13px;color:var(--sub);grid-column:1/-1">まだ解放された木がありません。<br>分別を続けよう！</div>';
+  }
+  document.getElementById('zk-grid').innerHTML=html;
+}
+function openTree(lv){
+  const t=TREES.slice().reverse().find(x=>lv>=x.lv)||TREES[0];
+  document.getElementById('tm-svg-wrap').innerHTML=getTreeSvg(lv);
+  document.getElementById('tm-lv-tag').textContent='Lv.'+lv+' 解放済み';
+  document.getElementById('tm-nm').textContent=t.nm;
+  document.getElementById('tm-story').textContent=t.story;
+  document.getElementById('tree-modal').style.display='flex';
+}
+
+// ══════════════════════════════════════════
+// BADGES — 受取済みでも閲覧可能
+// ══════════════════════════════════════════
+function renderBadges(){
+  document.getElementById('bdg-row').innerHTML=BADGES.map(b=>{
+    const earned=b.cond();
+    const claimed=S.claimedBadges.includes(b.id);
+    // ロック（未達成・未受取）
+    if(!earned&&!claimed)return`<div class="bdg lk"><div style="font-size:21px;margin-bottom:3px">${b.e}</div><div style="font-size:10px;font-weight:600">${b.nm}</div></div>`;
+    const isNew=earned&&!claimed;
+    // 受取済み → タップで詳細見れる（ポイント受取不可）
+    if(claimed)return`<div class="bdg claimed" onclick="openBadgeModal('${b.id}',true)"><div style="font-size:21px;margin-bottom:3px">${b.e}</div><div style="font-size:10px;font-weight:600;color:var(--sub)">${b.nm}</div><div style="font-size:9px;color:var(--dark);font-weight:700;margin-top:2px">獲得済み ✓</div></div>`;
+    // 未受取
+    return`<div class="bdg earned" onclick="openBadgeModal('${b.id}',false)">${isNew?'<div class="bdg-new-dot"></div>':''}<div style="font-size:21px;margin-bottom:3px">${b.e}</div><div style="font-size:10px;font-weight:600">${b.nm}</div><div style="font-size:9px;color:var(--dark);font-weight:700;margin-top:2px">+${b.pts}pt</div></div>`;
+  }).join('');
+}
+function checkBadges(){
+  const has=BADGES.some(b=>b.cond()&&!S.claimedBadges.includes(b.id));
+  ['badge-bell-dot','ic-bell-dot','rk-bell-dot'].forEach(id=>{
+    const dot=document.getElementById(id);
+    if(dot)dot.style.display=has?'block':'none';
+  });
+}
+let curBadgeId=null;
+function openBadgeModal(id,viewOnly=false){
+  const b=BADGES.find(x=>x.id===id);if(!b)return;
+  curBadgeId=id;
+  document.getElementById('bm-e').textContent=b.e;
+  document.getElementById('bm-nm').textContent=b.nm;
+  document.getElementById('bm-desc').textContent=b.desc;
+  const ptsWrap=document.getElementById('bm-pts-wrap');
+  const claimBtn=document.getElementById('bm-claim-btn');
+  if(viewOnly){
+    document.getElementById('bm-pts-label').textContent='ボーナスポイント（受取済み）';
+    document.getElementById('bm-pts').textContent='+'+b.pts+'pt';
+    ptsWrap.style.background='var(--light)';
+    claimBtn.textContent='✅ ポイント獲得済み';
+    claimBtn.disabled=true;
+    claimBtn.style.opacity='.55';
+  } else {
+    document.getElementById('bm-pts-label').textContent='ボーナスポイント';
+    document.getElementById('bm-pts').textContent='+'+b.pts+'pt';
+    ptsWrap.style.background='var(--paler)';
+    claimBtn.textContent='🎁 ポイントを受け取る';
+    claimBtn.disabled=false;
+    claimBtn.style.opacity='1';
+  }
+  document.getElementById('bdg-modal').style.display='flex';
+}
+function claimBadge(){
+  if(!curBadgeId)return;
+  const b=BADGES.find(x=>x.id===curBadgeId);
+  if(!b||S.claimedBadges.includes(curBadgeId))return;
+  S.claimedBadges.push(curBadgeId);S.points+=b.pts;sv();
+  const btn=document.getElementById('bm-claim-btn');btn.disabled=true;btn.textContent='✅ 受け取り済み';btn.style.opacity='.55';
+  document.getElementById('bm-pts-label').textContent='ボーナスポイント（受取済み）';
+  toast(b.nm+' バッジ！ +'+b.pts+'pt 🎉');checkBadges();
+  setTimeout(()=>{closeM('bdg-modal');updM();},1200);
+}
+function openBadgeNotif(){
+  const unc=BADGES.filter(b=>b.cond()&&!S.claimedBadges.includes(b.id));
+  if(!unc.length){toast('受け取り待ちのバッジはありません');return;}
+  document.getElementById('badge-notif-list').innerHTML=unc.map(b=>`<div style="background:var(--paler);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:11px;cursor:pointer" onclick="closeM('badge-notif-modal');openBadgeModal('${b.id}',false)"><div style="font-size:28px">${b.e}</div><div style="flex:1"><div style="font-size:13px;font-weight:700">${b.nm}</div><div style="font-size:11px;color:var(--sub);margin-top:2px">${b.desc.slice(0,28)}…</div></div><div style="font-size:13px;font-weight:800;color:var(--dark)">+${b.pts}pt</div></div>`).join('');
+  document.getElementById('badge-notif-modal').style.display='flex';
+}
+
+// ══════════════════════════════════════════
+// PROFILE
+// ══════════════════════════════════════════
+function openProf(){
+  document.getElementById('pnm').value=S.name;
+  document.getElementById('pbio').value=S.bio||'';
+  const prev=document.getElementById('prof-av-preview');
+  if(S.avatarPhoto)prev.innerHTML=`<img src="${S.avatarPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:999px">`;
+  else prev.textContent=S.avatar||'🌱';
+  document.getElementById('prof-modal').style.display='flex';
+}
+function saveProf(){
+  const n=document.getElementById('pnm').value.trim()||S.name;
+  S.name=n;S.bio=document.getElementById('pbio').value.trim();
+  S.handle='@'+n.toLowerCase().replace(/[^\w]/g,'').slice(0,12)||'@user';
+  sv();closeM('prof-modal');updM();toast('プロフィールを更新しました ✅');
+}
+
+// ══════════════════════════════════════════
+// SETTINGS / UTILS
+// ══════════════════════════════════════════
+const TOGS={push:true,location:true,mail:false};
+function openSet(){
+  document.getElementById('set-list').innerHTML=[['push','プッシュ通知'],['location','位置情報の使用'],['mail','メールマガジン']].map(([k,l])=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--light)"><span style="font-size:13px">${l}</span><button class="tog ${TOGS[k]?'on':'off'}" onclick="togSet('${k}',this)"><div class="tog-k"></div></button></div>`).join('');
+  document.getElementById('set-modal').style.display='flex';
+}
+function togSet(k,btn){TOGS[k]=!TOGS[k];btn.className='tog '+(TOGS[k]?'on':'off');}
+function openExch(){document.getElementById('ex-pts').textContent=S.points.toLocaleString();document.getElementById('exch-modal').style.display='flex';}
+function closeM(id){document.getElementById(id).style.display='none';}
+function comingSoon(){document.getElementById('cs-modal').style.display='flex';}
+let tt;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2600);}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  if(S.registered){
+    updH();checkBadges();
+    document.getElementById('screen-register').classList.remove('active');
+    document.getElementById('screen-home').classList.add('active');
+  }
+});
+</script>
+</body>
+</html>
