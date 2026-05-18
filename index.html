@@ -1368,8 +1368,9 @@ async function doDetect(base64){
   lastImageHash = hash;
   try{
     let category='不明';
+    let result=null;
     try{
-      const result=await analyzeWithGemini(base64);
+      result=await analyzeWithGemini(base64);
       category=result?.category||'不明';
     }catch(err){
       if(err.message==='NO_KEY'){showApiKeyModal();scanning=false;showSS('idle');return;}
