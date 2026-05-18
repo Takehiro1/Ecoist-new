@@ -1396,7 +1396,7 @@ async function doDetect(base64){
   const vb=document.getElementById('r-vid-banner');
   if(vb){vb.style.opacity='1';vb.style.pointerEvents='auto';}
   showSS('result');
-  }catch(e){toast('エラーが発生しました');scanning=false;showSS('idle');}
+  }catch(e){showErrModal('予期せぬエラー: '+(e?.message||String(e)));scanning=false;showSS('idle');}
 }
 function closeErrModal(){var m=document.getElementById('err-modal');if(m)m.style.display='none';}
 function showErrModal(msg){var m=document.getElementById('err-modal');if(!m){m=document.createElement('div');m.id='err-modal';m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';m.innerHTML='<div style="background:#fff;border-radius:20px;padding:24px;width:100%;max-width:360px"><div style="font-size:16px;font-weight:700;margin-bottom:12px">⚠️ エラー詳細</div><div id="err-msg-body" style="font-size:13px;color:#444;line-height:1.7;word-break:break-all;background:#f5f5f5;border-radius:10px;padding:12px;margin-bottom:14px"></div><button onclick="closeErrModal()" style="width:100%;background:#1A3D2B;color:#fff;border-radius:12px;padding:12px;font-size:14px;font-weight:700;border:none;cursor:pointer">閉じる</button></div>';document.body.appendChild(m);}document.getElementById('err-msg-body').textContent=msg;m.style.display='flex';}
