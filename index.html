@@ -1321,11 +1321,11 @@ async function analyzeWithGemini(base64Image){
   const prompt=`この画像に写っているゴミを判定してください。以下のカテゴリのどれか1つだけをJSON形式で返してください。他の文字は一切不要です。カテゴリ: ペットボトル, アルミ缶, スチール缶, プラスチック, 紙類, ガラス瓶, 段ボール。もしゴミが写っていない・判定できない場合は category を "不明" にしてください。形式: {"category":"ペットボトル","confidence":0.95}`;
   const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:'image/jpeg',data:base64Image}},{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:100}})
+    body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:'image/jpeg',data:base64Image}},{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:200},thinkingConfig:{thinkingBudget:0}})
   });
   if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'APIエラー');}
   const data=await res.json();
-  const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  const parts=data.candidates?.[0]?.content?.parts||[];const text=parts.filter(p=>p.text).map(p=>p.text).join('')||'';
   return JSON.parse(text.replace(/```json|```/g,'').trim());
 }
 
@@ -1385,7 +1385,8 @@ async function doDetect(base64){
   showSS('result');
   }catch(e){toast('エラーが発生しました');scanning=false;showSS('idle');}
 }
-function showErrModal(msg){let m=document.getElementById('err-modal');if(!m){m=document.createElement('div');m.id='err-modal';m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';m.innerHTML='<div style="background:#fff;border-radius:20px;padding:24px;width:100%;max-width:360px"><div style="font-size:16px;font-weight:700;margin-bottom:12px">⚠️ エラー詳細</div><div id="err-msg-body" style="font-size:13px;color:#444;line-height:1.7;word-break:break-all;background:#f5f5f5;border-radius:10px;padding:12px;margin-bottom:14px"></div><button onclick="document.getElementById("err-modal").style.display="none"" style="width:100%;background:#1A3D2B;color:#fff;border-radius:12px;padding:12px;font-size:14px;font-weight:700;border:none;cursor:pointer">閉じる</button></div>';document.body.appendChild(m);}document.getElementById('err-msg-body').textContent=msg;m.style.display='flex';}
+function closeErrModal(){var m=document.getElementById('err-modal');if(m)m.style.display='none';}
+function showErrModal(msg){var m=document.getElementById('err-modal');if(!m){m=document.createElement('div');m.id='err-modal';m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';m.innerHTML='<div style="background:#fff;border-radius:20px;padding:24px;width:100%;max-width:360px"><div style="font-size:16px;font-weight:700;margin-bottom:12px">⚠️ エラー詳細</div><div id="err-msg-body" style="font-size:13px;color:#444;line-height:1.7;word-break:break-all;background:#f5f5f5;border-radius:10px;padding:12px;margin-bottom:14px"></div><button onclick="closeErrModal()" style="width:100%;background:#1A3D2B;color:#fff;border-radius:12px;padding:12px;font-size:14px;font-weight:700;border:none;cursor:pointer">閉じる</button></div>';document.body.appendChild(m);}document.getElementById('err-msg-body').textContent=msg;m.style.display='flex';}
 function retake(){scanning=false;const btn=document.getElementById('scan-cam-btn');if(btn)btn.disabled=false;showSS('idle');}
 function confirmScan(){if(!curW)return;const cb=document.getElementById('r-confirm-btn');if(cb.disabled)return;cb.disabled=true;const isQ=!S.questCompleted&&curW.quest;addScan(curW,isQ);}
 
