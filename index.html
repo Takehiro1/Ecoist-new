@@ -1321,7 +1321,7 @@ function saveApiKey(){
   toast('✅ APIキーを保存しました');
 }
 
-// ── Gemini AI判定 ────────────────────────────────────────────
+// ── Gemini AI判定（Worker経由）────────────────────────────────────
 async function analyzeWithGemini(base64Image){
   const prompt=`この画像に写っているゴミを判定してください。以下のルールに従ってJSONのみ返してください。他の文字は一切不要です。【カテゴリ】ペットボトル, アルミ缶, スチール缶, プラスチック, 紙類, ガラス瓶, 段ボール。【重要ルール】1.ゴミが写っていない・判定できない場合はcategoryを"不明"にしてください。2.ペットボトルの場合、キャップとラベルが取り外されているか確認し、取り外されていない場合はcategoryを"不明"、reasonを"キャップまたはラベルが付いています。取り外してから分別してください"にしてください。3.過去に撮影された画像や印刷物・画面の写真と判断される場合はcategoryを"不明"、reasonを"実物を撮影してください"にしてください。形式: {"category":"ペットボトル","confidence":0.95,"reason":""}`;
   const res=await fetch(`https://ecoist.takkekyupy.workers.dev/`,{
@@ -2001,7 +2001,13 @@ const TUT_SPOTS = [
     targetQuery: '#h-quest',
     text: '<strong style="color:#C8902A">デイリークエスト</strong>をクリアすると<br>ボーナスポイントがもらえるよ。毎日チェックしよう！',
     bubblePos: 'below',
-    onShow: () => showTab('home'),
+    onShow: () => {
+      showTab('home');
+      setTimeout(() => {
+        const el = document.getElementById('h-quest');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 350);
+    },
   },
   // ランキング画面
   {
