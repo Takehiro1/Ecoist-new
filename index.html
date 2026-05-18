@@ -280,23 +280,22 @@ input{font-family:inherit;outline:none;border:none}
 <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
 <div class="screen active" id="screen-register" style="position:relative;overflow:hidden">
   <div class="login-bg"></div>
-  <!-- decorative blobs -->
   <div style="position:absolute;top:-100px;right:-80px;width:280px;height:280px;border-radius:50%;background:rgba(60,179,113,.08)"></div>
   <div style="position:absolute;top:100px;left:-80px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.03)"></div>
   <div style="position:absolute;bottom:200px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(60,179,113,.05)"></div>
 
-  <div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%">
-    <!-- Top hero -->
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 28px 20px;text-align:center">
-      <!-- wordmark + mascot -->
-      <div style="margin-bottom:28px">
-        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px">
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;overflow:hidden">
+    <!-- スライドコンテナ -->
+    <div id="reg-slides" style="display:flex;width:200%;height:100%;transition:transform 0.4s cubic-bezier(.4,0,.2,1)">
+
+      <!-- スライド1: ようこそ -->
+      <div style="width:50%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 28px 32px;text-align:center">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:24px">
           <div style="width:36px;height:36px;border-radius:10px;background:rgba(60,179,113,.25);display:flex;align-items:center;justify-content:center">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
           </div>
           <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#fff;letter-spacing:-.5px">Eco<span style="color:#6FCF97">ist</span></div>
         </div>
-        <!-- mascot -->
         <svg width="110" height="110" viewBox="0 0 100 100" class="a-bob">
           <ellipse cx="50" cy="62" rx="22" ry="26" fill="#52B788"/>
           <path d="M50 8 C28 8 20 30 30 46 C36 54 44 58 50 58 C56 58 64 54 70 46 C80 30 72 8 50 8Z" fill="#3A9A6A"/>
@@ -315,56 +314,62 @@ input{font-family:inherit;outline:none;border:none}
           <ellipse cx="42" cy="87" rx="9" ry="5" fill="#3A9A6A"/>
           <ellipse cx="58" cy="87" rx="9" ry="5" fill="#3A9A6A"/>
         </svg>
-      </div>
-      <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:800;color:#fff;letter-spacing:-1px;line-height:1.15;margin-bottom:10px">エコをポイ活へ。</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.8;max-width:240px">分別するたびにポイントが貯まる。<br>地球も、財布も、ちょっと得する。</div>
-
-      <!-- perks -->
-      <div style="display:flex;gap:8px;margin-top:24px;width:100%">
-        <div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 8px;text-align:center;flex:1;backdrop-filter:blur(8px)">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="1.8" stroke-linecap="round" style="margin-bottom:6px"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-          <div style="font-size:10px;color:rgba(255,255,255,.75);font-weight:600;line-height:1.4">分別で<br>ポイント</div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:30px;font-weight:800;color:#fff;letter-spacing:-1px;line-height:1.15;margin-bottom:10px;margin-top:20px">Ecoistへようこそ！</div>
+        <div style="font-size:14px;color:rgba(255,255,255,.65);line-height:1.8;max-width:260px">分別するたびにポイントが貯まる。<br>地球も、財布も、ちょっと得する。</div>
+        <div style="display:flex;gap:8px;margin-top:28px;width:100%;max-width:320px">
+          <div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px 8px;text-align:center;flex:1">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="1.8" stroke-linecap="round" style="margin-bottom:6px"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <div style="font-size:10px;color:rgba(255,255,255,.75);font-weight:600;line-height:1.4">分別で<br>ポイント</div>
+          </div>
+          <div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px 8px;text-align:center;flex:1">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="1.8" stroke-linecap="round" style="margin-bottom:6px"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+            <div style="font-size:10px;color:rgba(255,255,255,.75);font-weight:600;line-height:1.4">木を<br>育てる</div>
+          </div>
+          <div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px 8px;text-align:center;flex:1">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="1.8" stroke-linecap="round" style="margin-bottom:6px"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <div style="font-size:10px;color:rgba(255,255,255,.75);font-weight:600;line-height:1.4">現金に<br>交換</div>
+          </div>
         </div>
-        <div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 8px;text-align:center;flex:1;backdrop-filter:blur(8px)">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="1.8" stroke-linecap="round" style="margin-bottom:6px"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
-          <div style="font-size:10px;color:rgba(255,255,255,.75);font-weight:600;line-height:1.4">木を<br>育てる</div>
+        <button onclick="document.getElementById('reg-slides').style.transform='translateX(-50%)'" style="margin-top:32px;background:#6FCF97;color:#1A3D2B;border:none;border-radius:16px;padding:16px 48px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;width:100%;max-width:320px">はじめる</button>
+      </div>
+
+      <!-- スライド2: 登録フォーム -->
+      <div style="width:50%;height:100%;display:flex;flex-direction:column">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 28px 20px;text-align:center">
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:32px">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(60,179,113,.25);display:flex;align-items:center;justify-content:center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+            </div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#fff;letter-spacing:-.5px">Eco<span style="color:#6FCF97">ist</span></div>
+          </div>
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#fff;margin-bottom:8px">ニックネームを決めよう</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.7">あとから変更できるよ</div>
         </div>
-        <div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 8px;text-align:center;flex:1;backdrop-filter:blur(8px)">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="1.8" stroke-linecap="round" style="margin-bottom:6px"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-          <div style="font-size:10px;color:rgba(255,255,255,.75);font-weight:600;line-height:1.4">現金に<br>交換</div>
+        <div style="background:var(--card);border-radius:28px 28px 0 0;padding:28px 22px 40px">
+          <div style="margin-bottom:14px">
+            <label class="fl">ニックネーム</label>
+            <input id="reg-nm" class="fi" type="text" placeholder="エコ太郎" maxlength="20" onkeydown="if(event.key==='Enter')doReg()">
+          </div>
+          <button class="btn btn-dk" style="width:100%;margin-bottom:10px;font-size:15px" onclick="doReg()">
+            はじめる！チュートリアルで +10pt
+          </button>
+          <div style="display:flex;align-items:center;gap:10px;margin:12px 0">
+            <div style="flex:1;height:1px;background:var(--light)"></div>
+            <span style="font-size:11px;color:var(--sub);font-weight:600">または</span>
+            <div style="flex:1;height:1px;background:var(--light)"></div>
+          </div>
+          <div style="display:flex;gap:9px">
+            <button class="social-btn" style="background:#fff;border:1.5px solid var(--light);color:var(--txt);flex:1;font-size:13px" onclick="comingSoon()">
+              <span style="font-size:18px">G</span> Google
+            </button>
+            <button class="social-btn" style="background:#06C755;color:#fff;flex:1;font-size:13px" onclick="comingSoon()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 5.9 2 10.7c0 2.9 1.6 5.5 4.1 7.2-.2.7-.7 2.5-.8 2.9-.1.5.4.5.6.3.2-.1 2.5-1.7 3.5-2.4.8.1 1.7.2 2.6.2 5.52 0 10-3.9 10-8.7S17.52 2 12 2z"/></svg>
+              LINE
+            </button>
+          </div>
+          <div style="font-size:10px;color:var(--sub);text-align:center;margin-top:14px;line-height:1.7">登録することで利用規約・プライバシーポリシーに同意します</div>
         </div>
       </div>
-    </div>
-
-    <!-- Bottom login card -->
-    <div style="background:var(--card);border-radius:28px 28px 0 0;padding:26px 22px 40px">
-      <div style="font-size:18px;font-weight:700;margin-bottom:4px;text-align:center">はじめる</div>
-      <div style="font-size:12px;color:var(--sub);margin-bottom:18px;text-align:center">ニックネームを入れるだけで OK</div>
-      <div style="margin-bottom:14px">
-        <label class="fl">ニックネーム</label>
-        <input id="reg-nm" class="fi" type="text" placeholder="エコ太郎" maxlength="20" onkeydown="if(event.key==='Enter')doReg()">
-      </div>
-      <button class="btn btn-dk" style="width:100%;margin-bottom:10px;font-size:15px" onclick="doReg()">
-        登録して 10pt もらう 🎉
-      </button>
-
-      <div style="display:flex;align-items:center;gap:10px;margin:12px 0">
-        <div style="flex:1;height:1px;background:var(--light)"></div>
-        <span style="font-size:11px;color:var(--sub);font-weight:600">または</span>
-        <div style="flex:1;height:1px;background:var(--light)"></div>
-      </div>
-
-      <!-- Social login (Coming Soon) -->
-      <div style="display:flex;gap:9px">
-        <button class="social-btn" style="background:#fff;border:1.5px solid var(--light);color:var(--txt);flex:1;font-size:13px" onclick="comingSoon()">
-          <span style="font-size:18px">G</span> Google
-        </button>
-        <button class="social-btn" style="background:#06C755;color:#fff;flex:1;font-size:13px" onclick="comingSoon()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 5.9 2 10.7c0 2.9 1.6 5.5 4.1 7.2-.2.7-.7 2.5-.8 2.9-.1.5.4.5.6.3.2-.1 2.5-1.7 3.5-2.4.8.1 1.7.2 2.6.2 5.52 0 10-3.9 10-8.7S17.52 2 12 2z"/></svg>
-          LINE
-        </button>
-      </div>
-      <div style="font-size:10px;color:var(--sub);text-align:center;margin-top:14px;line-height:1.7">登録することで利用規約・プライバシーポリシーに同意します</div>
     </div>
   </div>
 </div>
@@ -1009,7 +1014,7 @@ input{font-family:inherit;outline:none;border:none}
 // ══════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════
-const SK='ecoist-v17';
+const SK='ecoist-v36';
 const DF={registered:false,name:'エコ太郎',handle:'@ecotaro',bio:'環境を守りたいです',avatar:'🌱',avatarPhoto:null,points:0,todayScans:0,totalScans:0,totalCo2g:0,totalGarbageG:0,streakDays:1,history:[],questCompleted:false,videoWatchCount:0,claimedBadges:[],prevLv:1,lastDate:''};
 let S;try{S=Object.assign({},DF,JSON.parse(localStorage.getItem(SK)||'null')||{});}catch{S={...DF};}
 ['claimedBadges'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];});
@@ -1191,7 +1196,7 @@ function showTab(tab){
 function doReg(){
   const n=document.getElementById('reg-nm').value.trim()||'エコ太郎';
   S.name=n;S.handle='@'+n.toLowerCase().replace(/[^\w]/g,'').slice(0,12)||'@user';
-  S.registered=true;S.points+=10;sv();checkBadges();showTab('home');
+  S.registered=true;sv();checkBadges();showTab('home');setTimeout(()=>{if(typeof startTutorial==='function')startTutorial();},400);
 }
 
 // ══════════════════════════════════════════
@@ -1236,7 +1241,10 @@ function updH(){
   document.getElementById('h-duo').innerHTML=[
     {v:co2>=1000?(co2/1000).toFixed(2)+'kg':co2+'g',u:'CO₂削減',l:'二酸化炭素'},
     {v:g>=1000?(g/1000).toFixed(1)+'kg':g+'g',u:'ごみ削減',l:'廃棄物'}
-  ].map(x=>`<div class="duo-c"><div class="duo-v">${x.v}</div><div class="duo-u">${x.u}</div><div class="duo-l">${x.l}</div></div>`).join('');
+  ].map((x,i)=>{
+    const bg = i===0 ? `<svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.18" viewBox="0 0 160 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="n1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4a9a6a"/><stop offset="100%" stop-color="#2d7a50"/></linearGradient></defs><ellipse cx="80" cy="80" rx="100" ry="40" fill="#7cc9a0"/><ellipse cx="30" cy="70" rx="18" ry="22" fill="url(#n1)"/><ellipse cx="80" cy="60" rx="26" ry="32" fill="url(#n1)"/><ellipse cx="130" cy="68" rx="16" ry="20" fill="url(#n1)"/><ellipse cx="80" cy="48" rx="18" ry="22" fill="#5aad80"/><rect x="76" y="78" width="8" height="18" rx="3" fill="#6b4a28"/></svg>` : `<svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.18" viewBox="0 0 160 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="n2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3cb371"/><stop offset="100%" stop-color="#2d7a50"/></linearGradient></defs><ellipse cx="80" cy="88" rx="100" ry="30" fill="#a8d8b8"/><path d="M20 80 Q30 55 45 70 Q55 50 70 65 Q80 42 95 60 Q110 45 130 70 Q140 80 150 75 L150 100 L20 100Z" fill="url(#n2)"/><circle cx="40" cy="52" r="8" fill="#5aad80" opacity=".7"/><circle cx="40" cy="44" r="6" fill="#6bc890" opacity=".8"/><circle cx="120" cy="48" r="10" fill="#5aad80" opacity=".6"/><circle cx="120" cy="38" r="7" fill="#6bc890" opacity=".7"/></svg>`;
+    return `<div class="duo-c" style="position:relative;overflow:hidden">${bg}<div style="position:relative;z-index:1"><div class="duo-v">${x.v}</div><div class="duo-u">${x.u}</div><div class="duo-l">${x.l}</div></div></div>`;
+  }).join('');
   // meta
   if(co2===0&&g===0){
     document.getElementById('meta-panel').innerHTML='<div style="text-align:center;padding:16px 0;font-size:13px;color:var(--sub)">まだデータがありません。<br>分別を記録すると表示されます！</div>';
@@ -1313,10 +1321,8 @@ function saveApiKey(){
 
 // ── Gemini AI判定 ────────────────────────────────────────────
 async function analyzeWithGemini(base64Image){
-  const apiKey=localStorage.getItem('gemini_api_key');
-  if(!apiKey)throw new Error('NO_KEY');
   const prompt=`この画像に写っているゴミを判定してください。以下のルールに従ってJSONのみ返してください。他の文字は一切不要です。【カテゴリ】ペットボトル, アルミ缶, スチール缶, プラスチック, 紙類, ガラス瓶, 段ボール。【重要ルール】1.ゴミが写っていない・判定できない場合はcategoryを"不明"にしてください。2.ペットボトルの場合、キャップとラベルが取り外されているか確認し、取り外されていない場合はcategoryを"不明"、reasonを"キャップまたはラベルが付いています。取り外してから分別してください"にしてください。3.過去に撮影された画像や印刷物・画面の写真と判断される場合はcategoryを"不明"、reasonを"実物を撮影してください"にしてください。形式: {"category":"ペットボトル","confidence":0.95,"reason":""}`;
-  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,{
+  const res=await fetch(`https://ecoist.takkekyupy.workers.dev/`,{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:'image/jpeg',data:base64Image}},{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:1000,responseMimeType:"application/json"}})
   });
@@ -1330,7 +1336,6 @@ async function analyzeWithGemini(base64Image){
 function startScan(){
   if(scanning)return;
   if(S.todayScans>=SCAN_LIMIT){showSS('limit');return;}
-  if(!localStorage.getItem('gemini_api_key')){showApiKeyModal();return;}
   lastImageHash=null;
   const inp=document.createElement('input');
   inp.type='file';inp.accept='image/*';inp.capture='environment';
@@ -1341,7 +1346,6 @@ function startScan(){
 function handleLib(inp){
   if(!inp.files||!inp.files[0]||scanning)return;
   if(S.todayScans>=SCAN_LIMIT){showSS('limit');return;}
-  if(!localStorage.getItem('gemini_api_key')){showApiKeyModal();return;}
   processImage(inp.files[0]);inp.value='';
 }
 
@@ -1373,7 +1377,6 @@ async function doDetect(base64){
       result=await analyzeWithGemini(base64);
       category=result?.category||'不明';
     }catch(err){
-      if(err.message==='NO_KEY'){showApiKeyModal();scanning=false;showSS('idle');return;}
       showErrModal(err.message);scanning=false;showSS('idle');return;
     }
     if(category==='不明'){const reason=result?.reason||'ゴミを検出できませんでした。もう一度撮影してください。';toast('⚠️ '+reason);scanning=false;showSS('idle');return;}
@@ -1760,6 +1763,260 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('screen-home').classList.add('active');
   }
 });
+
 </script>
+
+
+
+<!-- ── インタラクティブチュートリアル ── -->
+<style>
+#tut-overlay {
+  position: absolute; inset: 0; z-index: 20000;
+  pointer-events: none;
+  display: none;
+}
+#tut-overlay.active { pointer-events: auto; }
+#tut-spotlight {
+  position: absolute; border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.62);
+  transition: all 0.45s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+  border: 2.5px solid rgba(255,255,255,0.25);
+  z-index: 20001;
+}
+#tut-pulse {
+  position: absolute; border-radius: 16px;
+  border: 2.5px solid rgba(108,210,130,0.7);
+  animation: tutpulse 1.4s ease-out infinite;
+  pointer-events: none;
+  z-index: 20002;
+}
+@keyframes tutpulse {
+  0%   { opacity:1; transform:scale(1); }
+  100% { opacity:0; transform:scale(1.18); }
+}
+#tut-bubble {
+  position: absolute;
+  background: #fff;
+  border-radius: 20px;
+  padding: 14px 16px 14px 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  display: flex; align-items: flex-start; gap: 10px;
+  max-width: 280px; min-width: 220px;
+  transition: all 0.4s cubic-bezier(.4,0,.2,1);
+  pointer-events: auto;
+  z-index: 20002;
+}
+#tut-bubble::after {
+  content: '';
+  position: absolute;
+  border: 8px solid transparent;
+  transition: all 0.4s;
+}
+#tut-bubble.arrow-down::after {
+  border-top-color: #fff;
+  bottom: -16px; left: 50%; transform: translateX(-50%);
+  border-bottom: none;
+}
+#tut-bubble.arrow-up::after {
+  border-bottom-color: #fff;
+  top: -16px; left: 50%; transform: translateX(-50%);
+  border-top: none;
+}
+#tut-char { flex-shrink: 0; animation: tutbob 2s ease-in-out infinite; }
+@keyframes tutbob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+#tut-text { font-size: 13px; line-height: 1.6; color: #1A3D2B; font-weight: 500; }
+#tut-step-lbl { font-size: 11px; color: #3CB371; font-weight: 700; margin-bottom: 4px; }
+#tut-next-btn {
+  margin-top: 10px; width: 100%;
+  background: #1A3D2B; color: #fff; border: none;
+  border-radius: 12px; padding: 10px; font-size: 13px;
+  font-weight: 700; cursor: pointer; font-family: inherit;
+  pointer-events: auto;
+  position: relative; z-index: 20003;
+}
+#tut-skip-btn {
+  position: absolute; top: 52px; right: 16px; z-index: 20001;
+  background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff; border-radius: 999px; padding: 6px 14px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: inherit; pointer-events: auto;
+}
+#tut-progress {
+  position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 5px; z-index: 20001; pointer-events: none;
+}
+.tut-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,0.35);
+  transition: all 0.3s;
+}
+.tut-dot.on { background: #fff; width: 18px; border-radius: 3px; }
+</style>
+
+<div id="tut-overlay">
+  <div id="tut-spotlight"></div>
+  <div id="tut-pulse"></div>
+  <div id="tut-bubble" class="arrow-down">
+    <div id="tut-char"><svg width="64" height="64" viewBox="0 0 80 80"><ellipse cx="40" cy="58" rx="14" ry="16" fill="#7BC88A"/><circle cx="40" cy="30" r="22" fill="#5AAD6C"/><circle cx="40" cy="30" r="19" fill="#6BC07A"/><circle cx="33" cy="28" r="3" fill="#fff"/><circle cx="47" cy="28" r="3" fill="#fff"/><circle cx="34" cy="28.5" r="1.6" fill="#2a5a30"/><circle cx="48" cy="28.5" r="1.6" fill="#2a5a30"/><path d="M35 35 Q40 40 45 35" stroke="#2a5a30" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="34" cy="17" r="4" fill="#4A9A5C"/><circle cx="47" cy="15" r="3" fill="#4A9A5C"/></svg></div>
+    <div style="flex:1">
+      <div id="tut-step-lbl">STEP 1 / 5</div>
+      <div id="tut-text">ここがホーム画面だよ！<br>まず全体を見てみよう。</div>
+      <button id="tut-next-btn" onclick="tutNext()">タップして次へ</button>
+    </div>
+  </div>
+  <button id="tut-skip-btn" onclick="tutSkip()">スキップ</button>
+  <div id="tut-progress">
+    <div class="tut-dot on" id="tdot-0"></div>
+    <div class="tut-dot" id="tdot-1"></div>
+    <div class="tut-dot" id="tdot-2"></div>
+    <div class="tut-dot" id="tdot-3"></div>
+    <div class="tut-dot" id="tdot-4"></div>
+  </div>
+</div>
+
+<script>
+// ── インタラクティブチュートリアル ──────────────────────────
+const TUT_STEPS = [
+  {
+    targetQuery: '.tree-w',
+    text: 'これがきみの木！<br>分別するたびに成長するよ。ポイントも一緒に貯まっていくよ！',
+    bubblePos: 'below',
+  },
+  {
+    targetQuery: '[data-tab="scan"].bnt-fab',
+    text: 'ここがスキャンボタン！<br>ゴミをカメラで撮影すると、AIが種類を自動で判定してくれるよ。',
+    bubblePos: 'above',
+    onShow: () => showTab('home'),
+  },
+  {
+    targetQuery: '#h-quest',
+    text: 'デイリークエストをクリアすると<br>ボーナスポイントがもらえるよ！毎日チェックしてね。',
+    bubblePos: 'below',
+    onShow: () => showTab('home'),
+  },
+  {
+    targetQuery: '[data-tab="ranking"]',
+    text: 'ランキングでみんなと競おう！<br>週間・月間ランキングで上位に入ると特典もあるよ。',
+    bubblePos: 'above',
+    onShow: () => showTab('home'),
+  },
+  {
+    targetQuery: '[data-tab="mypage"]',
+    text: 'マイページでは称号・バッジ・<br>ポイント交換ができるよ。レベルアップを目指そう！',
+    bubblePos: 'above',
+    onShow: () => showTab('home'),
+  },
+];
+
+let tutStep = 0;
+let tutActive = false;
+
+function startTutorial() {
+  if (localStorage.getItem('tut_done_v36')) return;
+  tutActive = true;
+  tutStep = 0;
+  document.getElementById('tut-overlay').classList.add('active');
+  document.getElementById('tut-overlay').style.display = 'block';
+  setTimeout(() => tutShowStep(0), 300);
+}
+
+function tutShowStep(idx) {
+  const step = TUT_STEPS[idx];
+  if (step.onShow) step.onShow();
+
+  // ドット更新
+  TUT_STEPS.forEach((_, i) => {
+    const d = document.getElementById('tdot-' + i);
+    if (d) { d.className = 'tut-dot' + (i === idx ? ' on' : ''); }
+  });
+
+  // ターゲット要素を取得
+  const targets = document.querySelectorAll(step.targetQuery);
+  // 表示中の画面のものを優先
+  let el = null;
+  for (const t of targets) {
+    const rect = t.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) { el = t; break; }
+  }
+  if (!el) { tutNext(); return; }
+
+  const rect = el.getBoundingClientRect();
+  const pad = 8;
+  const sl = document.getElementById('tut-spotlight');
+  const pulse = document.getElementById('tut-pulse');
+
+  const slStyle = {
+    left: (rect.left - pad) + 'px',
+    top: (rect.top - pad) + 'px',
+    width: (rect.width + pad * 2) + 'px',
+    height: (rect.height + pad * 2) + 'px',
+  };
+  Object.assign(sl.style, slStyle);
+  Object.assign(pulse.style, slStyle);
+
+  // 吹き出し位置
+  const bubble = document.getElementById('tut-bubble');
+  const bw = 280, bh = 140;
+  const vw = window.innerWidth;
+
+  let bubbleLeft = Math.min(Math.max(rect.left + rect.width / 2 - bw / 2, 12), vw - bw - 12);
+
+  if (step.bubblePos === 'below') {
+    bubble.style.top = (rect.bottom + pad + 16) + 'px';
+    bubble.style.left = bubbleLeft + 'px';
+    bubble.className = 'arrow-up';
+  } else {
+    bubble.style.top = (rect.top - pad - bh - 24) + 'px';
+    bubble.style.left = bubbleLeft + 'px';
+    bubble.className = 'arrow-down';
+  }
+
+  // テキスト更新
+  document.getElementById('tut-step-lbl').textContent = 'STEP ' + (idx + 1) + ' / ' + TUT_STEPS.length;
+  document.getElementById('tut-text').innerHTML = step.text;
+
+  const isLast = idx === TUT_STEPS.length - 1;
+  document.getElementById('tut-next-btn').textContent = isLast ? '完了して +10pt もらう！' : 'タップして次へ';
+}
+
+function tutNext() {
+  if (!tutActive) return;
+  tutStep++;
+  if (tutStep >= TUT_STEPS.length) {
+    tutFinish();
+  } else {
+    tutShowStep(tutStep);
+  }
+}
+
+function tutFinish() {
+  tutActive = false;
+  localStorage.setItem('tut_done_v36', '1');
+  document.getElementById('tut-overlay').classList.remove('active');
+  document.getElementById('tut-overlay').style.display = 'none';
+  // 10pt付与
+  if (typeof S !== 'undefined' && typeof sv === 'function') {
+    S.points += 10; sv();
+    setTimeout(() => { toast('チュートリアル完了！ +10pt もらったよ！'); if(typeof updH === 'function') updH(); }, 200);
+  }
+}
+
+function tutSkip() {
+  tutActive = false;
+  localStorage.setItem('tut_done_v36', '1');
+  document.getElementById('tut-overlay').classList.remove('active');
+  document.getElementById('tut-overlay').style.display = 'none';
+}
+</script>
+
+</body>
+</html>
+// 起動時に実行
+</script>
+
+
+
 </body>
 </html>
