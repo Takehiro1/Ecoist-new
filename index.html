@@ -1331,6 +1331,7 @@ function startScan(){
   if(scanning)return;
   if(S.todayScans>=SCAN_LIMIT){showSS('limit');return;}
   if(!localStorage.getItem('gemini_api_key')){showApiKeyModal();return;}
+  lastImageHash=null;
   const inp=document.createElement('input');
   inp.type='file';inp.accept='image/*';inp.capture='environment';
   inp.style.display='none';document.body.appendChild(inp);
