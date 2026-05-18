@@ -244,7 +244,7 @@ input{font-family:inherit;outline:none;border:none}
 .cal-d.tod::after{display:none}
 .vid-m{background:#080E0A;border-radius:14px;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:38px;position:relative;overflow:hidden;margin-bottom:14px}
 .vid-p{position:absolute;bottom:0;left:0;height:3px;background:var(--accent);transition:width .08s linear}
-.toast{position:absolute;bottom:100px;left:50%;transform:translateX(-50%) translateY(14px);background:rgba(17,28,22,.92);backdrop-filter:blur(8px);color:#fff;padding:10px 22px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:all .28s cubic-bezier(.4,0,.2,1);pointer-events:none;z-index:500;white-space:nowrap}
+.toast{position:absolute;bottom:100px;left:50%;transform:translateX(-50%) translateY(14px);background:rgba(17,28,22,.92);backdrop-filter:blur(8px);color:#fff;padding:10px 18px;border-radius:16px;font-size:12.5px;font-weight:600;opacity:0;transition:all .28s cubic-bezier(.4,0,.2,1);pointer-events:none;z-index:500;white-space:normal;max-width:calc(100% - 40px);text-align:center;line-height:1.5;word-break:break-all}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .fpt{position:absolute;top:37%;left:50%;transform:translateX(-50%);font-family:'Plus Jakarta Sans',sans-serif;font-size:42px;font-weight:800;color:var(--accent);pointer-events:none;z-index:600;opacity:0}
 .fpt.go{animation:up 1.2s ease-out forwards}
@@ -2003,10 +2003,8 @@ const TUT_SPOTS = [
     bubblePos: 'below',
     onShow: () => {
       showTab('home');
-      setTimeout(() => {
-        const el = document.getElementById('h-quest');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 350);
+      const el = document.getElementById('h-quest');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
   },
   // ランキング画面
@@ -2035,11 +2033,8 @@ const TUT_SPOTS = [
     bubblePos: 'above',
     onShow: () => {
       showTab('mypage');
-      // バッジ行が見える位置までスクロール
-      setTimeout(() => {
-        const el = document.getElementById('bdg-row');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 400);
+      const el = document.getElementById('bdg-row');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
   },
   {
@@ -2048,11 +2043,8 @@ const TUT_SPOTS = [
     bubblePos: 'below',
     onShow: () => {
       showTab('mypage');
-      // ポイント交換行が見える位置にスクロール
-      setTimeout(() => {
-        const el = document.querySelector('.pex');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 400);
+      const el = document.querySelector('.pex');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
   },
 ];
@@ -2164,12 +2156,29 @@ function tutStartSpotlight() {
   tutShowSpot(0);
 }
 
+// スクロール完了を待ってスポットライト位置を確定
+function tutPositionAfterScroll(targetQuery, bubblePos) {
+  // rAFを2回挟んでスクロール後のレイアウトが確定してから計算
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        let el = null;
+        for (const t of document.querySelectorAll(targetQuery)) {
+          const r = t.getBoundingClientRect();
+          if (r.width > 0 && r.height > 0) { el = t; break; }
+        }
+        if (!el) return;
+        positionSpotlight(el, 8);
+        positionBubble(el, bubblePos);
+      }, 300);
+    });
+  });
+}
+
 function tutShowSpot(idx) {
   const step = TUT_SPOTS[idx];
-  if (step.onShow) step.onShow();
 
   tutSetDots(idx);
-
   document.getElementById('tut-step-lbl').textContent = 'STEP ' + (idx + 1) + ' / ' + TUT_SPOTS.length;
   document.getElementById('tut-text').innerHTML = step.text;
   const isLast = idx === TUT_SPOTS.length - 1;
@@ -2177,20 +2186,10 @@ function tutShowSpot(idx) {
   btn.textContent = isLast ? '完了して +10pt もらう！' : 'タップして次へ';
   btn.className = isLast ? 'green' : '';
 
-  // スクロールを待ってからスポットライト位置確定
-  const doPosition = () => {
-    let el = null;
-    for (const t of document.querySelectorAll(step.targetQuery)) {
-      const r = t.getBoundingClientRect();
-      if (r.width > 0 && r.height > 0) { el = t; break; }
-    }
-    if (!el) { tutSpotNext(); return; }
-    positionSpotlight(el, 8);
-    positionBubble(el, step.bubblePos);
-  };
+  if (step.onShow) step.onShow();
 
-  // onShow内にscrollIntoViewがある場合は少し待つ
-  setTimeout(doPosition, 500);
+  // スクロールを伴うステップは完了後に再計算
+  tutPositionAfterScroll(step.targetQuery, step.bubblePos);
 }
 
 function tutSpotNext() {
