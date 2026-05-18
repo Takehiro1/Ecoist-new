@@ -1321,7 +1321,7 @@ async function analyzeWithGemini(base64Image){
   const prompt=`この画像に写っているゴミを判定してください。以下のカテゴリのどれか1つだけをJSON形式で返してください。他の文字は一切不要です。カテゴリ: ペットボトル, アルミ缶, スチール缶, プラスチック, 紙類, ガラス瓶, 段ボール。もしゴミが写っていない・判定できない場合は category を "不明" にしてください。形式: {"category":"ペットボトル","confidence":0.95}`;
   const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:'image/jpeg',data:base64Image}},{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:200},thinkingConfig:{thinkingBudget:0}})
+    body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:'image/jpeg',data:base64Image}},{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:200}})
   });
   if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'APIエラー');}
   const data=await res.json();
