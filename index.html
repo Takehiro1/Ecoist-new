@@ -1014,7 +1014,9 @@ input{font-family:inherit;outline:none;border:none}
 // ══════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════
-const SK='ecoist-v36';
+const SK='ecoist-v38';
+// 古いバージョンのキーをクリア
+['ecoist-v36','ecoist-v37','tut_done_v36','tut_done_v37'].forEach(k=>localStorage.removeItem(k));
 const DF={registered:false,name:'エコ太郎',handle:'@ecotaro',bio:'環境を守りたいです',avatar:'🌱',avatarPhoto:null,points:0,todayScans:0,totalScans:0,totalCo2g:0,totalGarbageG:0,streakDays:1,history:[],questCompleted:false,videoWatchCount:0,claimedBadges:[],prevLv:1,lastDate:''};
 let S;try{S=Object.assign({},DF,JSON.parse(localStorage.getItem(SK)||'null')||{});}catch{S={...DF};}
 ['claimedBadges'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];});
@@ -1196,7 +1198,7 @@ function showTab(tab){
 function doReg(){
   const n=document.getElementById('reg-nm').value.trim()||'エコ太郎';
   S.name=n;S.handle='@'+n.toLowerCase().replace(/[^\w]/g,'').slice(0,12)||'@user';
-  S.registered=true;sv();checkBadges();showTab('home');setTimeout(()=>{if(typeof startTutorial==='function')startTutorial();},400);
+  S.registered=true;sv();checkBadges();showTab('home');setTimeout(()=>{if(typeof startTutorial==='function')startTutorial();},500);
 }
 
 // ══════════════════════════════════════════
@@ -1768,255 +1770,480 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 
 
-<!-- ── インタラクティブチュートリアル ── -->
+<!-- ── 体験型チュートリアル v2 ── -->
 <style>
+/* ─ 共通オーバーレイ ─ */
 #tut-overlay {
   position: absolute; inset: 0; z-index: 20000;
-  pointer-events: none;
-  display: none;
+  pointer-events: none; display: none;
 }
 #tut-overlay.active { pointer-events: auto; }
+
+/* ─ スポットライト ─ */
 #tut-spotlight {
   position: absolute; border-radius: 16px;
-  box-shadow: 0 0 0 9999px rgba(0,0,0,0.62);
-  transition: all 0.45s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.64);
+  transition: all 0.4s cubic-bezier(.4,0,.2,1);
   pointer-events: none;
-  border: 2.5px solid rgba(255,255,255,0.25);
+  border: 2px solid rgba(255,255,255,0.28);
   z-index: 20001;
 }
 #tut-pulse {
   position: absolute; border-radius: 16px;
-  border: 2.5px solid rgba(108,210,130,0.7);
-  animation: tutpulse 1.4s ease-out infinite;
-  pointer-events: none;
-  z-index: 20002;
+  border: 2.5px solid rgba(108,210,130,0.75);
+  animation: tpulse 1.5s ease-out infinite;
+  pointer-events: none; z-index: 20002;
+  transition: all 0.4s cubic-bezier(.4,0,.2,1);
 }
-@keyframes tutpulse {
-  0%   { opacity:1; transform:scale(1); }
-  100% { opacity:0; transform:scale(1.18); }
-}
+@keyframes tpulse { 0%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:scale(1.22)} }
+
+/* ─ 吹き出し ─ */
 #tut-bubble {
   position: absolute;
-  background: #fff;
-  border-radius: 20px;
-  padding: 14px 16px 14px 14px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-  display: flex; align-items: flex-start; gap: 10px;
-  max-width: 280px; min-width: 220px;
-  transition: all 0.4s cubic-bezier(.4,0,.2,1);
-  pointer-events: auto;
-  z-index: 20002;
+  background: #fff; border-radius: 18px;
+  padding: 13px 14px 13px 12px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.2);
+  display: flex; align-items: flex-start; gap: 9px;
+  width: calc(100% - 32px); max-width: 320px;
+  pointer-events: auto; z-index: 20003;
+  transition: top 0.38s cubic-bezier(.4,0,.2,1), left 0.38s cubic-bezier(.4,0,.2,1);
+  box-sizing: border-box;
 }
 #tut-bubble::after {
-  content: '';
-  position: absolute;
-  border: 8px solid transparent;
-  transition: all 0.4s;
+  content: ''; position: absolute;
+  border: 9px solid transparent; transition: all 0.35s;
 }
 #tut-bubble.arrow-down::after {
-  border-top-color: #fff;
-  bottom: -16px; left: 50%; transform: translateX(-50%);
-  border-bottom: none;
+  border-top-color: #fff; bottom: -17px;
+  left: 50%; transform: translateX(-50%); border-bottom: none;
 }
 #tut-bubble.arrow-up::after {
-  border-bottom-color: #fff;
-  top: -16px; left: 50%; transform: translateX(-50%);
-  border-top: none;
+  border-bottom-color: #fff; top: -17px;
+  left: 50%; transform: translateX(-50%); border-top: none;
 }
-#tut-char { flex-shrink: 0; animation: tutbob 2s ease-in-out infinite; }
-@keyframes tutbob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-#tut-text { font-size: 13px; line-height: 1.6; color: #1A3D2B; font-weight: 500; }
-#tut-step-lbl { font-size: 11px; color: #3CB371; font-weight: 700; margin-bottom: 4px; }
+#tut-char { flex-shrink: 0; animation: tcharbob 2s ease-in-out infinite; }
+@keyframes tcharbob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+#tut-text { font-size: 12.5px; line-height: 1.65; color: #1A3D2B; font-weight: 500; }
+#tut-step-lbl { font-size: 10px; color: #3CB371; font-weight: 700; margin-bottom: 4px; letter-spacing:.3px }
 #tut-next-btn {
-  margin-top: 10px; width: 100%;
+  margin-top: 9px; width: 100%;
   background: #1A3D2B; color: #fff; border: none;
-  border-radius: 12px; padding: 10px; font-size: 13px;
+  border-radius: 11px; padding: 10px; font-size: 12.5px;
   font-weight: 700; cursor: pointer; font-family: inherit;
-  pointer-events: auto;
-  position: relative; z-index: 20003;
+  pointer-events: auto; position: relative; z-index: 20004;
+  transition: transform .15s, background .2s;
 }
+#tut-next-btn:active { transform: scale(.96); }
+#tut-next-btn.green { background: #3CB371; }
+
+/* ─ スキップ / ドット ─ */
 #tut-skip-btn {
-  position: absolute; top: 52px; right: 16px; z-index: 20001;
+  position: absolute; top: 52px; right: 14px; z-index: 20005;
   background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
   border: 1px solid rgba(255,255,255,0.3);
   color: #fff; border-radius: 999px; padding: 6px 14px;
-  font-size: 12px; font-weight: 600; cursor: pointer;
+  font-size: 11.5px; font-weight: 600; cursor: pointer;
   font-family: inherit; pointer-events: auto;
 }
 #tut-progress {
-  position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
-  display: flex; gap: 5px; z-index: 20001; pointer-events: none;
+  position: absolute; top: 58px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 5px; z-index: 20005; pointer-events: none;
 }
-.tut-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: rgba(255,255,255,0.35);
-  transition: all 0.3s;
+.tut-dot { width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.32);transition:all .3s }
+.tut-dot.on { background:#fff; width:18px; border-radius:3px }
+
+/* ─ ウェルカム全画面 ─ */
+#tut-welcome {
+  position: absolute; inset: 0; z-index: 20010;
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 28px 24px 32px; text-align: center;
+  background: linear-gradient(160deg,#0E2A1C 0%,#1A3D2B 55%,#2D6A4F 100%);
+  pointer-events: auto; box-sizing: border-box;
 }
-.tut-dot.on { background: #fff; width: 18px; border-radius: 3px; }
+#tut-welcome.active { display: flex; }
+
+/* ─ 擬似スキャン ─ */
+#tut-scan-ov {
+  position: absolute; inset: 0; z-index: 20010;
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center; gap: 18px;
+  background: rgba(0,0,0,0.88); pointer-events: auto; padding: 28px; box-sizing:border-box;
+}
+#tut-scan-ov.active { display: flex; }
+.tut-ring {
+  width:130px;height:130px;border-radius:50%;
+  border:3px solid rgba(60,179,113,.2);
+  display:flex;align-items:center;justify-content:center;position:relative;
+}
+.tut-ring::before {
+  content:'';position:absolute;inset:-4px;border-radius:50%;
+  border:3px solid transparent;border-top-color:#3CB371;
+  animation:tspin 1s linear infinite;
+}
+@keyframes tspin{to{transform:rotate(360deg)}}
+
+/* ─ 結果 ─ */
+#tut-result-ov {
+  position: absolute; inset: 0; z-index: 20010;
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.72); pointer-events: auto;
+  padding: 20px 16px; box-sizing:border-box;
+}
+#tut-result-ov.active { display: flex; }
+.tut-rcard {
+  background:#fff;border-radius:22px;
+  padding:22px 18px;width:100%;max-width:320px;text-align:center;
+  animation:trin .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes trin{from{opacity:0;transform:scale(.84) translateY(14px)}to{opacity:1;transform:scale(1) translateY(0)}}
 </style>
 
+<!-- ウェルカム -->
+<div id="tut-welcome">
+  <svg width="80" height="80" viewBox="0 0 80 80" style="animation:tcharbob 2s ease-in-out infinite;margin-bottom:6px;flex-shrink:0">
+    <ellipse cx="40" cy="58" rx="14" ry="16" fill="#7BC88A"/>
+    <circle cx="40" cy="30" r="22" fill="#5AAD6C"/><circle cx="40" cy="30" r="19" fill="#6BC07A"/>
+    <circle cx="33" cy="28" r="3" fill="#fff"/><circle cx="47" cy="28" r="3" fill="#fff"/>
+    <circle cx="34" cy="28.5" r="1.6" fill="#2a5a30"/><circle cx="48" cy="28.5" r="1.6" fill="#2a5a30"/>
+    <path d="M35 35 Q40 40 45 35" stroke="#2a5a30" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <circle cx="34" cy="17" r="4" fill="#4A9A5C"/><circle cx="47" cy="15" r="3" fill="#4A9A5C"/>
+  </svg>
+  <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#fff;line-height:1.25;margin-bottom:10px">やあ！まず1回<br>いっしょにやってみよう</div>
+  <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.8;margin-bottom:8px">ゴミを分別するだけでポイントが貯まる。<br>流れを体験してみよう！</div>
+  <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:28px">（約30秒）</div>
+  <button onclick="tutWelcomeDone()" style="width:100%;max-width:260px;background:#3CB371;color:#fff;border:none;border-radius:14px;padding:15px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px rgba(60,179,113,.4)">はじめる ▶</button>
+  <button onclick="tutSkip()" style="margin-top:12px;background:none;border:none;color:rgba(255,255,255,.35);font-size:11.5px;cursor:pointer;font-family:inherit">スキップ</button>
+</div>
+
+<!-- 擬似スキャン中 -->
+<div id="tut-scan-ov">
+  <div class="tut-ring"><div style="font-size:48px">🧴</div></div>
+  <div style="text-align:center">
+    <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:5px">AIが判定中…</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.5)">ペットボトルを認識しています</div>
+  </div>
+  <div style="display:flex;gap:7px">
+    <div style="width:7px;height:7px;border-radius:50%;background:#3CB371;animation:blink .9s ease-in-out infinite"></div>
+    <div style="width:7px;height:7px;border-radius:50%;background:#3CB371;animation:blink .9s ease-in-out .25s infinite"></div>
+    <div style="width:7px;height:7px;border-radius:50%;background:#3CB371;animation:blink .9s ease-in-out .5s infinite"></div>
+  </div>
+</div>
+
+<!-- 擬似結果 -->
+<div id="tut-result-ov">
+  <div class="tut-rcard">
+    <div style="font-size:46px;margin-bottom:9px">🧴</div>
+    <div style="font-size:14px;font-weight:700;color:#1A3D2B;margin-bottom:3px">「ペットボトル」を検出！</div>
+    <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:34px;font-weight:800;color:#1A3D2B;margin-bottom:3px">+3pt</div>
+    <div style="font-size:11px;color:#728C7E;margin-bottom:14px">CO₂ 35g 削減</div>
+    <div style="background:#E6F0EB;border-radius:10px;padding:7px 12px;font-size:11px;font-weight:700;color:#1A3D2B;margin-bottom:16px;display:inline-flex;align-items:center;gap:4px">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3CB371" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      捨て先：プラスチック容器ゴミ
+    </div>
+    <button onclick="tutResultConfirm()" style="width:100%;background:#1A3D2B;color:#fff;border:none;border-radius:13px;padding:13px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      そのままポイントをもらう
+    </button>
+  </div>
+</div>
+
+<!-- スポットライトオーバーレイ -->
 <div id="tut-overlay">
   <div id="tut-spotlight"></div>
   <div id="tut-pulse"></div>
   <div id="tut-bubble" class="arrow-down">
-    <div id="tut-char"><svg width="64" height="64" viewBox="0 0 80 80"><ellipse cx="40" cy="58" rx="14" ry="16" fill="#7BC88A"/><circle cx="40" cy="30" r="22" fill="#5AAD6C"/><circle cx="40" cy="30" r="19" fill="#6BC07A"/><circle cx="33" cy="28" r="3" fill="#fff"/><circle cx="47" cy="28" r="3" fill="#fff"/><circle cx="34" cy="28.5" r="1.6" fill="#2a5a30"/><circle cx="48" cy="28.5" r="1.6" fill="#2a5a30"/><path d="M35 35 Q40 40 45 35" stroke="#2a5a30" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="34" cy="17" r="4" fill="#4A9A5C"/><circle cx="47" cy="15" r="3" fill="#4A9A5C"/></svg></div>
-    <div style="flex:1">
-      <div id="tut-step-lbl">STEP 1 / 5</div>
-      <div id="tut-text">ここがホーム画面だよ！<br>まず全体を見てみよう。</div>
-      <button id="tut-next-btn" onclick="tutNext()">タップして次へ</button>
+    <div id="tut-char">
+      <svg width="52" height="52" viewBox="0 0 80 80">
+        <ellipse cx="40" cy="58" rx="14" ry="16" fill="#7BC88A"/>
+        <circle cx="40" cy="30" r="22" fill="#5AAD6C"/><circle cx="40" cy="30" r="19" fill="#6BC07A"/>
+        <circle cx="33" cy="28" r="3" fill="#fff"/><circle cx="47" cy="28" r="3" fill="#fff"/>
+        <circle cx="34" cy="28.5" r="1.6" fill="#2a5a30"/><circle cx="48" cy="28.5" r="1.6" fill="#2a5a30"/>
+        <path d="M35 35 Q40 40 45 35" stroke="#2a5a30" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <circle cx="34" cy="17" r="4" fill="#4A9A5C"/><circle cx="47" cy="15" r="3" fill="#4A9A5C"/>
+      </svg>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div id="tut-step-lbl">STEP 1 / 6</div>
+      <div id="tut-text"></div>
+      <button id="tut-next-btn" onclick="tutSpotNext()">タップして次へ</button>
     </div>
   </div>
   <button id="tut-skip-btn" onclick="tutSkip()">スキップ</button>
   <div id="tut-progress">
-    <div class="tut-dot on" id="tdot-0"></div>
+    <div class="tut-dot" id="tdot-0"></div>
     <div class="tut-dot" id="tdot-1"></div>
     <div class="tut-dot" id="tdot-2"></div>
     <div class="tut-dot" id="tdot-3"></div>
     <div class="tut-dot" id="tdot-4"></div>
+    <div class="tut-dot" id="tdot-5"></div>
   </div>
 </div>
 
 <script>
-// ── インタラクティブチュートリアル ──────────────────────────
-const TUT_STEPS = [
+// ══════════════════════════════════════════
+// 体験型チュートリアル v2
+// ポイント合計 MAX13pt（スキャン3pt + 完了ボーナス10pt）
+// ══════════════════════════════════════════
+
+// ── スポットライトステップ定義（体験後の説明フェーズ）──
+// 全6ステップ: 木・クエスト・スキャンボタン・ランキング(3ステップ)・マイページ
+const TUT_SPOTS = [
   {
     targetQuery: '.tree-w',
-    text: 'これがきみの木！<br>分別するたびに成長するよ。ポイントも一緒に貯まっていくよ！',
+    text: 'ポイントをもらうと<strong style="color:#3CB371">きみの木</strong>が育つよ！<br>分別するたびに成長していくよ。',
     bubblePos: 'below',
-  },
-  {
-    targetQuery: '[data-tab="scan"].bnt-fab',
-    text: 'ここがスキャンボタン！<br>ゴミをカメラで撮影すると、AIが種類を自動で判定してくれるよ。',
-    bubblePos: 'above',
     onShow: () => showTab('home'),
   },
   {
     targetQuery: '#h-quest',
-    text: 'デイリークエストをクリアすると<br>ボーナスポイントがもらえるよ！毎日チェックしてね。',
+    text: '<strong style="color:#C8902A">デイリークエスト</strong>をクリアすると<br>ボーナスポイントがもらえるよ。毎日チェックしよう！',
     bubblePos: 'below',
     onShow: () => showTab('home'),
   },
+  // ランキング画面に移動して3ステップ
   {
-    targetQuery: '[data-tab="ranking"]',
-    text: 'ランキングでみんなと競おう！<br>週間・月間ランキングで上位に入ると特典もあるよ。',
+    targetQuery: '#cat-tabs',
+    text: 'ここがランキング！<strong style="color:#1A3D2B">フレンド・地域・大学</strong>の3カテゴリがあるよ。<br>タブを切り替えて色々な競い方ができるよ。',
+    bubblePos: 'below',
+    onShow: () => showTab('ranking'),
+  },
+  {
+    targetQuery: '#rk-p-tabs',
+    text: '期間フィルターで<strong style="color:#1A3D2B">日・週・月・年</strong>を絞り込めるよ。<br>週間・月間で上位に入ると<strong style="color:#C8902A">特典</strong>もあるよ！',
+    bubblePos: 'below',
+    onShow: () => showTab('ranking'),
+  },
+  {
+    targetQuery: '#vb-card',
+    text: 'チームのCO₂削減量が<strong style="color:#D4607A">300gを超えるごと</strong>に動画ボーナスが解放されるよ。<br>動画を見ると<strong style="color:#1A3D2B">スキャンポイントが2倍</strong>になる！',
     bubblePos: 'above',
-    onShow: () => showTab('home'),
+    onShow: () => showTab('ranking'),
   },
   {
     targetQuery: '[data-tab="mypage"]',
-    text: 'マイページでは称号・バッジ・<br>ポイント交換ができるよ。レベルアップを目指そう！',
+    text: '<strong style="color:#1A3D2B">マイページ</strong>ではバッジ・称号・<br>ポイント交換ができるよ。レベルアップを目指そう！',
     bubblePos: 'above',
-    onShow: () => showTab('home'),
+    onShow: () => showTab('ranking'),
   },
 ];
 
-let tutStep = 0;
-let tutActive = false;
+let tutSpotIdx = 0;
 
+// ─── 起動 ───────────────────────────────
 function startTutorial() {
-  if (localStorage.getItem('tut_done_v36')) return;
-  tutActive = true;
-  tutStep = 0;
-  document.getElementById('tut-overlay').classList.add('active');
-  document.getElementById('tut-overlay').style.display = 'block';
-  setTimeout(() => tutShowStep(0), 300);
+  if (localStorage.getItem('tut_done_v38')) return;
+  const w = document.getElementById('tut-welcome');
+  w.style.display = 'flex';
+  w.classList.add('active');
 }
 
-function tutShowStep(idx) {
-  const step = TUT_STEPS[idx];
+// ─── Welcome完了 → スキャン画面へ ────────
+function tutWelcomeDone() {
+  document.getElementById('tut-welcome').style.display = 'none';
+  showTab('scan');
+  setTimeout(tutShowScanPrompt, 350);
+}
+
+// ─── スキャンボタンをスポットライト ────────
+function tutShowScanPrompt() {
+  const ov = document.getElementById('tut-overlay');
+  ov.style.display = 'block';
+  ov.classList.add('active');
+
+  // スキャン画面の sc-circle をハイライト
+  const el = document.querySelector('#screen-scan .sc-circle') || document.getElementById('scan-cam-btn');
+  if (!el) { tutStartScan(); return; }
+
+  tutSetDots(-1); // ドット非点灯（体験フェーズ）
+  positionSpotlight(el, 10);
+  positionBubble(el, 'above');
+
+  document.getElementById('tut-step-lbl').textContent = '体験フェーズ';
+  document.getElementById('tut-text').innerHTML = 'このボタンをタップして<br><strong style="color:#3CB371">ゴミをスキャン</strong>してみよう！';
+  const btn = document.getElementById('tut-next-btn');
+  btn.textContent = 'カメラを起動する 📷';
+  btn.className = 'green';
+  btn.onclick = () => {
+    btn.className = '';
+    ov.classList.remove('active');
+    ov.style.display = 'none';
+    tutStartScan();
+  };
+}
+
+// ─── 擬似スキャン ─────────────────────
+function tutStartScan() {
+  showTab('scan');
+  const so = document.getElementById('tut-scan-ov');
+  so.style.display = 'flex';
+  so.classList.add('active');
+  setTimeout(() => {
+    so.classList.remove('active');
+    so.style.display = 'none';
+    tutShowResult();
+  }, 2000);
+}
+
+// ─── 擬似結果 ─────────────────────────
+function tutShowResult() {
+  showTab('scan');
+  const ro = document.getElementById('tut-result-ov');
+  ro.style.display = 'flex';
+  ro.classList.add('active');
+}
+
+function tutResultConfirm() {
+  document.getElementById('tut-result-ov').classList.remove('active');
+  document.getElementById('tut-result-ov').style.display = 'none';
+
+  // ポイント付与（スキャン分の3ptのみ）
+  if (typeof S !== 'undefined' && typeof sv === 'function') {
+    S.points += 3;
+    S.totalScans += 1;
+    S.todayScans += 1;
+    S.totalCo2g += 35;
+    S.totalGarbageG += 30;
+    S.history.unshift({ t: 'ペットボトル', e: '🧴', p: 3, c: 35, q: false, time: new Date().toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'}) });
+    sv();
+  }
+
+  showTab('home');
+  if (typeof updH === 'function') updH();
+
+  // +ptアニメ
+  setTimeout(() => {
+    const fp = document.getElementById('fpt');
+    if (fp) { fp.textContent = '+3pt'; fp.classList.remove('go'); void fp.offsetWidth; fp.classList.add('go'); }
+    toast('+3pt ゲット！🎉');
+    // 木のアニメ
+    const tw = document.querySelector('.tree-w');
+    if (tw) { tw.style.animation = 'none'; void tw.offsetWidth; tw.style.animation = 'tgrow .65s cubic-bezier(.34,1.56,.64,1)'; setTimeout(() => tw.style.animation = '', 700); }
+  }, 250);
+
+  // スポットライトフェーズへ
+  setTimeout(tutStartSpotlight, 1300);
+}
+
+// ─── スポットライトフェーズ ──────────────
+function tutStartSpotlight() {
+  tutSpotIdx = 0;
+  const ov = document.getElementById('tut-overlay');
+  ov.style.display = 'block';
+  ov.classList.add('active');
+  document.getElementById('tut-next-btn').onclick = tutSpotNext;
+  tutShowSpot(0);
+}
+
+function tutShowSpot(idx) {
+  const step = TUT_SPOTS[idx];
   if (step.onShow) step.onShow();
 
-  // ドット更新
-  TUT_STEPS.forEach((_, i) => {
-    const d = document.getElementById('tdot-' + i);
-    if (d) { d.className = 'tut-dot' + (i === idx ? ' on' : ''); }
-  });
+  tutSetDots(idx);
 
-  // ターゲット要素を取得
-  const targets = document.querySelectorAll(step.targetQuery);
-  // 表示中の画面のものを優先
+  // ターゲット要素
   let el = null;
-  for (const t of targets) {
-    const rect = t.getBoundingClientRect();
-    if (rect.width > 0 && rect.height > 0) { el = t; break; }
+  for (const t of document.querySelectorAll(step.targetQuery)) {
+    const r = t.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) { el = t; break; }
   }
-  if (!el) { tutNext(); return; }
+  if (!el) { tutSpotNext(); return; }
 
-  const rect = el.getBoundingClientRect();
-  const pad = 8;
-  const sl = document.getElementById('tut-spotlight');
-  const pulse = document.getElementById('tut-pulse');
+  positionSpotlight(el, 8);
+  positionBubble(el, step.bubblePos);
 
-  const slStyle = {
-    left: (rect.left - pad) + 'px',
-    top: (rect.top - pad) + 'px',
-    width: (rect.width + pad * 2) + 'px',
-    height: (rect.height + pad * 2) + 'px',
-  };
-  Object.assign(sl.style, slStyle);
-  Object.assign(pulse.style, slStyle);
-
-  // 吹き出し位置
-  const bubble = document.getElementById('tut-bubble');
-  const bw = 280, bh = 140;
-  const vw = window.innerWidth;
-
-  let bubbleLeft = Math.min(Math.max(rect.left + rect.width / 2 - bw / 2, 12), vw - bw - 12);
-
-  if (step.bubblePos === 'below') {
-    bubble.style.top = (rect.bottom + pad + 16) + 'px';
-    bubble.style.left = bubbleLeft + 'px';
-    bubble.className = 'arrow-up';
-  } else {
-    bubble.style.top = (rect.top - pad - bh - 24) + 'px';
-    bubble.style.left = bubbleLeft + 'px';
-    bubble.className = 'arrow-down';
-  }
-
-  // テキスト更新
-  document.getElementById('tut-step-lbl').textContent = 'STEP ' + (idx + 1) + ' / ' + TUT_STEPS.length;
+  document.getElementById('tut-step-lbl').textContent = 'STEP ' + (idx + 1) + ' / ' + TUT_SPOTS.length;
   document.getElementById('tut-text').innerHTML = step.text;
-
-  const isLast = idx === TUT_STEPS.length - 1;
-  document.getElementById('tut-next-btn').textContent = isLast ? '完了して +10pt もらう！' : 'タップして次へ';
+  const isLast = idx === TUT_SPOTS.length - 1;
+  const btn = document.getElementById('tut-next-btn');
+  btn.textContent = isLast ? '完了して +10pt もらう！' : 'タップして次へ';
+  btn.className = isLast ? 'green' : '';
 }
 
-function tutNext() {
-  if (!tutActive) return;
-  tutStep++;
-  if (tutStep >= TUT_STEPS.length) {
+function tutSpotNext() {
+  tutSpotIdx++;
+  if (tutSpotIdx >= TUT_SPOTS.length) {
     tutFinish();
   } else {
-    tutShowStep(tutStep);
+    tutShowSpot(tutSpotIdx);
   }
 }
 
+// ─── 完了 ────────────────────────────
 function tutFinish() {
-  tutActive = false;
-  localStorage.setItem('tut_done_v36', '1');
-  document.getElementById('tut-overlay').classList.remove('active');
-  document.getElementById('tut-overlay').style.display = 'none';
-  // 10pt付与
+  localStorage.setItem('tut_done_v38', '1');
+  const ov = document.getElementById('tut-overlay');
+  ov.classList.remove('active');
+  ov.style.display = 'none';
+  showTab('home');
+  // 完了ボーナス10pt（スキャン3ptと合計13pt）
   if (typeof S !== 'undefined' && typeof sv === 'function') {
     S.points += 10; sv();
-    setTimeout(() => { toast('チュートリアル完了！ +10pt もらったよ！'); if(typeof updH === 'function') updH(); }, 200);
+    setTimeout(() => {
+      toast('チュートリアル完了！ +10pt もらったよ 🎉');
+      if (typeof updH === 'function') updH();
+    }, 200);
   }
 }
 
 function tutSkip() {
-  tutActive = false;
-  localStorage.setItem('tut_done_v36', '1');
-  document.getElementById('tut-overlay').classList.remove('active');
-  document.getElementById('tut-overlay').style.display = 'none';
+  localStorage.setItem('tut_done_v38', '1');
+  ['tut-overlay','tut-welcome','tut-scan-ov','tut-result-ov'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('active'); el.style.display = 'none'; }
+  });
 }
+
+// ─── ユーティリティ ──────────────────
+function tutSetDots(activeIdx) {
+  TUT_SPOTS.forEach((_, i) => {
+    const d = document.getElementById('tdot-' + i);
+    if (d) d.className = 'tut-dot' + (i === activeIdx ? ' on' : '');
+  });
+}
+
+function positionSpotlight(el, pad) {
+  const r = el.getBoundingClientRect();
+  const s = { left:(r.left-pad)+'px', top:(r.top-pad)+'px', width:(r.width+pad*2)+'px', height:(r.height+pad*2)+'px' };
+  Object.assign(document.getElementById('tut-spotlight').style, s);
+  Object.assign(document.getElementById('tut-pulse').style, s);
+}
+
+function positionBubble(el, preferPos) {
+  const r = el.getBoundingClientRect();
+  const bubble = document.getElementById('tut-bubble');
+  // 幅は画面幅 - 32px のフレキシブル値を CSS で担保、JS では left のみ計算
+  const bw = Math.min(320, window.innerWidth - 32);
+  const bh = 170;
+  const pad = 8;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  const bubbleLeft = Math.max(16, Math.min(r.left + r.width / 2 - bw / 2, vw - bw - 16));
+
+  const spaceBelow = vh - r.bottom - pad - 16;
+  const spaceAbove = r.top - pad - 24;
+  let posBelow = preferPos === 'below';
+  if (posBelow && spaceBelow < bh) posBelow = false;
+  if (!posBelow && spaceAbove < bh) posBelow = true;
+
+  if (posBelow) {
+    bubble.style.top = (r.bottom + pad + 16) + 'px';
+    bubble.style.left = bubbleLeft + 'px';
+    bubble.className = 'arrow-up';
+  } else {
+    bubble.style.top = Math.max(r.top - pad - bh - 20, 8) + 'px';
+    bubble.style.left = bubbleLeft + 'px';
+    bubble.className = 'arrow-down';
+  }
+}
+
+// 木の成長アニメ用キーフレーム
+const _tgrowSt = document.createElement('style');
+_tgrowSt.textContent = '@keyframes tgrow{0%{transform:scale(1)}40%{transform:scale(1.15)}100%{transform:scale(1)}}';
+document.head.appendChild(_tgrowSt);
 </script>
-
-</body>
-</html>
-// 起動時に実行
-</script>
-
-
 
 </body>
 </html>
