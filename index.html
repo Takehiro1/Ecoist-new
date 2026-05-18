@@ -523,10 +523,7 @@ input{font-family:inherit;outline:none;border:none}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
           カメラを起動する
         </button>
-        <label class="btn btn-lt" style="width:100%;cursor:pointer">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          ライブラリから選ぶ<input type="file" accept="image/*" style="display:none" onchange="handleLib(this)">
-        </label>
+<!-- ライブラリボタン非表示 -->
       </div>
     </div>
     <!-- scanning -->
@@ -1318,7 +1315,7 @@ function saveApiKey(){
 async function analyzeWithGemini(base64Image){
   const apiKey=localStorage.getItem('gemini_api_key');
   if(!apiKey)throw new Error('NO_KEY');
-  const prompt=`この画像に写っているゴミを判定してください。以下のカテゴリのどれか1つだけをJSON形式で返してください。他の文字は一切不要です。カテゴリ: ペットボトル, アルミ缶, スチール缶, プラスチック, 紙類, ガラス瓶, 段ボール。もしゴミが写っていない・判定できない場合は category を "不明" にしてください。形式: {"category":"ペットボトル","confidence":0.95}`;
+  const prompt=`この画像に写っているゴミを判定してください。以下のルールに従ってJSONのみ返してください。他の文字は一切不要です。【カテゴリ】ペットボトル, アルミ缶, スチール缶, プラスチック, 紙類, ガラス瓶, 段ボール。【重要ルール】1.ゴミが写っていない・判定できない場合はcategoryを"不明"にしてください。2.ペットボトルの場合、キャップとラベルが取り外されているか確認し、取り外されていない場合はcategoryを"不明"、reasonを"キャップまたはラベルが付いています。取り外してから分別してください"にしてください。3.過去に撮影された画像や印刷物・画面の写真と判断される場合はcategoryを"不明"、reasonを"実物を撮影してください"にしてください。形式: {"category":"ペットボトル","confidence":0.95,"reason":""}`;
   const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:'image/jpeg',data:base64Image}},{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:1000,responseMimeType:"application/json"}})
@@ -1346,6 +1343,18 @@ function handleLib(inp){
   if(!localStorage.getItem('gemini_api_key')){showApiKeyModal();return;}
   processImage(inp.files[0]);inp.value='';
 }
+
+// ── 画像ハッシュ重複チェック ──
+let lastImageHash = null;
+async function getImageHash(base64) {
+  const str = base64.slice(0, 500);
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash.toString();
+}
 function processImage(file){
   scanning=true;showSS('scanning');
   const reader=new FileReader();
@@ -1353,6 +1362,9 @@ function processImage(file){
   reader.readAsDataURL(file);
 }
 async function doDetect(base64){
+  const hash = await getImageHash(base64);
+  if(hash === lastImageHash){toast('同じ画像は使用できません。新しく撮影してください。');scanning=false;showSS('idle');return;}
+  lastImageHash = hash;
   try{
     let category='不明';
     try{
@@ -1362,7 +1374,7 @@ async function doDetect(base64){
       if(err.message==='NO_KEY'){showApiKeyModal();scanning=false;showSS('idle');return;}
       showErrModal(err.message);scanning=false;showSS('idle');return;
     }
-    if(category==='不明'){toast('ゴミを検出できませんでした。もう一度撮影してください。');scanning=false;showSS('idle');return;}
+    if(category==='不明'){const reason=result?.reason||'ゴミを検出できませんでした。もう一度撮影してください。';toast('⚠️ '+reason);scanning=false;showSS('idle');return;}
     curW=WASTE.find(w=>w.t===category)||WASTE[0];
   document.getElementById('r-emoji').textContent=curW.e;
   document.getElementById('r-type').textContent=curW.t;
