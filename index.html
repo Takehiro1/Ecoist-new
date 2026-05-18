@@ -1978,6 +1978,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     <div class="tut-dot" id="tdot-3"></div>
     <div class="tut-dot" id="tdot-4"></div>
     <div class="tut-dot" id="tdot-5"></div>
+    <div class="tut-dot" id="tdot-6"></div>
   </div>
 </div>
 
@@ -1988,7 +1989,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 // ══════════════════════════════════════════
 
 // ── スポットライトステップ定義（体験後の説明フェーズ）──
-// 全6ステップ: 木・クエスト・スキャンボタン・ランキング(3ステップ)・マイページ
+// 全8ステップ: 木・クエスト・ランキング3ステップ・マイページ3ステップ
 const TUT_SPOTS = [
   {
     targetQuery: '.tree-w',
@@ -2002,7 +2003,7 @@ const TUT_SPOTS = [
     bubblePos: 'below',
     onShow: () => showTab('home'),
   },
-  // ランキング画面に移動して3ステップ
+  // ランキング画面
   {
     targetQuery: '#cat-tabs',
     text: 'ここがランキング！<strong style="color:#1A3D2B">フレンド・地域・大学</strong>の3カテゴリがあるよ。<br>タブを切り替えて色々な競い方ができるよ。',
@@ -2021,11 +2022,32 @@ const TUT_SPOTS = [
     bubblePos: 'above',
     onShow: () => showTab('ranking'),
   },
+  // マイページ
   {
-    targetQuery: '[data-tab="mypage"]',
-    text: '<strong style="color:#1A3D2B">マイページ</strong>ではバッジ・称号・<br>ポイント交換ができるよ。レベルアップを目指そう！',
+    targetQuery: '#bdg-row',
+    text: '<strong style="color:#1A3D2B">獲得バッジ</strong>はここに並ぶよ！<br>分別を続けるとどんどん解放されていく。タップして報酬を受け取れるよ。',
     bubblePos: 'above',
-    onShow: () => showTab('ranking'),
+    onShow: () => {
+      showTab('mypage');
+      // バッジ行が見える位置までスクロール
+      setTimeout(() => {
+        const el = document.getElementById('bdg-row');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 400);
+    },
+  },
+  {
+    targetQuery: '.pex',
+    text: '貯まったポイントは<strong style="color:#3CB371">ここで交換</strong>できるよ！<br>1,000pt以上からデジタルギフトに変えられるよ。',
+    bubblePos: 'below',
+    onShow: () => {
+      showTab('mypage');
+      // ポイント交換行が見える位置にスクロール
+      setTimeout(() => {
+        const el = document.querySelector('.pex');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 400);
+    },
   },
 ];
 
@@ -2142,23 +2164,27 @@ function tutShowSpot(idx) {
 
   tutSetDots(idx);
 
-  // ターゲット要素
-  let el = null;
-  for (const t of document.querySelectorAll(step.targetQuery)) {
-    const r = t.getBoundingClientRect();
-    if (r.width > 0 && r.height > 0) { el = t; break; }
-  }
-  if (!el) { tutSpotNext(); return; }
-
-  positionSpotlight(el, 8);
-  positionBubble(el, step.bubblePos);
-
   document.getElementById('tut-step-lbl').textContent = 'STEP ' + (idx + 1) + ' / ' + TUT_SPOTS.length;
   document.getElementById('tut-text').innerHTML = step.text;
   const isLast = idx === TUT_SPOTS.length - 1;
   const btn = document.getElementById('tut-next-btn');
   btn.textContent = isLast ? '完了して +10pt もらう！' : 'タップして次へ';
   btn.className = isLast ? 'green' : '';
+
+  // スクロールを待ってからスポットライト位置確定
+  const doPosition = () => {
+    let el = null;
+    for (const t of document.querySelectorAll(step.targetQuery)) {
+      const r = t.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) { el = t; break; }
+    }
+    if (!el) { tutSpotNext(); return; }
+    positionSpotlight(el, 8);
+    positionBubble(el, step.bubblePos);
+  };
+
+  // onShow内にscrollIntoViewがある場合は少し待つ
+  setTimeout(doPosition, 500);
 }
 
 function tutSpotNext() {
