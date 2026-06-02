@@ -1540,9 +1540,11 @@ function addScan(w,q){
   const fp=document.getElementById('fpt');fp.textContent='+'+pts+'pt';fp.classList.remove('go');void fp.offsetWidth;fp.classList.add('go');
   toast('+'+pts+'pt'+(q?' 🎯 クエスト達成！':''));
   if(newLv>prevLv)setTimeout(()=>showLvUp(newLv),1300);
-  // 記録完了 → 少し待ってホームへ
   scanning=false;
   updScan();
+  // ★ Supabaseにリアルタイム同期
+  syncUserToCloud();
+  addScanLog(w, pts);
   showSS('result');
   // ポイント付与完了 → ホームへ戻るボタンに切り替え、動画バナーを非表示
   const cb2=document.getElementById('r-confirm-btn');
@@ -2515,16 +2517,6 @@ async function renderRkReal() {
   ];
   if(rkPod) rkPod.innerHTML = po.map((r,i)=>{const s=PS[i];return`<div class="pod"><div>${s.m}</div><div class="pod-av" style="width:${s.w}px;height:${s.w}px;border:${s.bd};background:${s.bg}">${r.e}</div><div class="pod-nm">${r.n}</div><div class="pod-vl">${r.co2.toLocaleString()}g</div><div class="pod-bar" style="height:${s.bh}px;width:46px;background:${s.bb}"></div></div>`;}).join('');
   if(rkList) rkList.innerHTML = sorted.length ? sorted.map((r,i)=>`<div class="rk-r${r.me?' me':''}"><div class="rk-n">${i+1}</div><div class="rk-av">${r.e}</div><div style="flex:1"><span class="rk-nm">${r.n}${r.me?'<span class="you">あなた</span>':''}</span><div style="font-size:10px;color:var(--sub)">${perLbl}</div></div><div><div class="rk-vl">${r.co2.toLocaleString()}g</div><div style="font-size:10px;color:var(--sub)">CO₂削減</div></div></div>`).join('') : '<div style="text-align:center;padding:20px;font-size:13px;color:var(--sub)">まだ参加者がいません</div>';
-}
-
-// addScan後にクラウド同期
-const _origAddScan = addScan;
-function addScan(w, q) {
-  _origAddScan(w, q);
-  const bonus = q ? 20 : 0;
-  const pts = w.p + bonus;
-  syncUserToCloud();
-  addScanLog(w, pts);
 }
 
 // 通知設定
