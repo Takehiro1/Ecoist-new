@@ -348,8 +348,13 @@ input{font-family:inherit;outline:none;border:none}
         <div style="background:var(--card);border-radius:28px 28px 0 0;padding:28px 22px 40px">
           <div style="margin-bottom:14px">
             <label class="fl">ニックネーム</label>
-            <input id="reg-nm" class="fi" type="text" placeholder="エコ太郎" maxlength="20" onkeydown="if(event.key==='Enter')doReg()">
+            <input id="reg-nm" class="fi" type="text" placeholder="エコ太郎" maxlength="20">
           </div>
+          <div style="margin-bottom:14px">
+            <label class="fl">メールアドレス</label>
+            <input id="reg-email" class="fi" type="email" placeholder="eco@example.com" onkeydown="if(event.key==='Enter')doReg()">
+          </div>
+          <div id="reg-err" style="font-size:12px;color:#D4607A;margin-bottom:10px;display:none;text-align:center"></div>
           <button class="btn btn-dk" style="width:100%;margin-bottom:10px;font-size:15px" onclick="doReg()">
             はじめる！チュートリアルで +10pt
           </button>
@@ -812,6 +817,7 @@ input{font-family:inherit;outline:none;border:none}
         <div class="mi" onclick="showTab('map')"><div style="display:flex;align-items:center"><span class="mi-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>ゴミ箱マップ</div><span style="color:var(--sub)">›</span></div>
         <div class="mi"><div style="display:flex;align-items:center"><span class="mi-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>プライバシー設定</div><span style="color:var(--sub)">›</span></div>
         <div class="mi dng"><div style="display:flex;align-items:center"><span class="mi-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>ログアウト</div><span style="color:var(--sub)">›</span></div>
+        <div class="mi" onclick="openAdmin()" style="background:#FFF0CC"><div style="display:flex;align-items:center"><span class="mi-i">🔐</span>管理者ダッシュボード</div><span style="color:var(--sub)">›</span></div>
       </div>
     </div>
   </div>
@@ -1008,6 +1014,34 @@ input{font-family:inherit;outline:none;border:none}
   </div>
 </div>
 
+
+<!-- ═══════════════ ADMIN DASHBOARD ═══════════════ -->
+<div id="admin-dashboard" style="display:none;position:fixed;inset:0;background:#f0f4f0;z-index:9999;overflow-y:auto;font-family:inherit">
+  <div style="background:linear-gradient(135deg,#1A3D2B,#2D6A4F);padding:56px 20px 20px;color:#fff">
+    <div style="font-size:20px;font-weight:800;margin-bottom:4px">管理者ダッシュボード</div>
+    <div style="font-size:12px;opacity:.7">Ecoist 実証実験 v1.0</div>
+    <button onclick="closeAdmin()" style="position:absolute;top:56px;right:16px;background:rgba(255,255,255,.2);border:none;color:#fff;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✕ 閉じる</button>
+  </div>
+  <div style="padding:16px;display:flex;flex-direction:column;gap:12px;max-width:430px;margin:0 auto">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="admin-summary"></div>
+    <div style="background:#fff;border-radius:18px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:15px;font-weight:700;color:#1A3D2B">参加者一覧</div>
+        <button onclick="loadAdminData()" style="font-size:12px;color:#3CB371;background:none;border:none;cursor:pointer;font-weight:700">更新 ↺</button>
+      </div>
+      <div id="admin-users-list"></div>
+    </div>
+    <div style="background:#fff;border-radius:18px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+      <div style="font-size:15px;font-weight:700;color:#1A3D2B;margin-bottom:12px">分別ログ（直近30件）</div>
+      <div id="admin-scan-logs"></div>
+    </div>
+    <div style="background:#fff;border-radius:18px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+      <div style="font-size:15px;font-weight:700;color:#1A3D2B;margin-bottom:12px">KPIサマリー</div>
+      <div id="admin-kpi"></div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /shell -->
 
 <script>
@@ -1195,10 +1229,22 @@ function showTab(tab){
   if(tab==='ranking')updRk();
   if(tab==='scan')updScan();
 }
-function doReg(){
+async function doReg(){
   const n=document.getElementById('reg-nm').value.trim()||'エコ太郎';
-  S.name=n;S.handle='@'+n.toLowerCase().replace(/[^\w]/g,'').slice(0,12)||'@user';
-  S.registered=true;sv();checkBadges();showTab('home');setTimeout(()=>{if(typeof startTutorial==='function')startTutorial();},500);
+  const email=(document.getElementById('reg-email')?.value||'').trim().toLowerCase();
+  const errEl=document.getElementById('reg-err');
+  if(errEl){
+    if(!email||!email.includes('@')){errEl.textContent='メールアドレスを入力してください';errEl.style.display='block';return;}
+    errEl.style.display='none';
+  }
+  S.name=n;
+  S.email=email||'';
+  S.handle='@'+n.toLowerCase().replace(/[^\w]/g,'').slice(0,12)||'@user';
+  S.registered=true;
+  sv();
+  // クラウドにユーザー登録
+  await syncUserToCloud();
+  checkBadges();showTab('home');setTimeout(()=>{if(typeof startTutorial==='function')startTutorial();},500);
 }
 
 // ══════════════════════════════════════════
@@ -2274,6 +2320,199 @@ function positionBubble(el, preferPos) {
 const _tgrowSt = document.createElement('style');
 _tgrowSt.textContent = '@keyframes tgrow{0%{transform:scale(1)}40%{transform:scale(1.15)}100%{transform:scale(1)}}';
 document.head.appendChild(_tgrowSt);
+
+// ══════════════════════════════════════════
+// CLOUD SYNC (クラウドデータ同期)
+// ══════════════════════════════════════════
+const CLOUD_USERS_KEY = 'ecoist_users_v1';
+const CLOUD_LOGS_KEY  = 'ecoist_logs_v1';
+const ADMIN_PASSWORD  = 'ecoist2026';
+
+async function getAllCloudUsers() {
+  try {
+    const r = await window.storage.get(CLOUD_USERS_KEY, true);
+    return r ? JSON.parse(r.value) : {};
+  } catch { return {}; }
+}
+
+async function syncUserToCloud() {
+  try {
+    const users = await getAllCloudUsers();
+    const key = S.email || S.name;
+    users[key] = {
+      name: S.name,
+      email: S.email||'',
+      handle: S.handle||'',
+      points: S.points||0,
+      totalScans: S.totalScans||0,
+      totalCo2g: S.totalCo2g||0,
+      streakDays: S.streakDays||1,
+      lastDate: S.lastDate||'',
+      joinedAt: users[key]?.joinedAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    await window.storage.set(CLOUD_USERS_KEY, JSON.stringify(users), true);
+  } catch(e) { console.warn('syncUserToCloud error:', e); }
+}
+
+async function addScanLog(w, pts) {
+  try {
+    const r = await window.storage.get(CLOUD_LOGS_KEY, true);
+    const logs = r ? JSON.parse(r.value) : [];
+    logs.unshift({
+      user: S.name, email: S.email||'', type: w.t, emoji: w.e,
+      pts, co2: w.c, time: new Date().toISOString()
+    });
+    if (logs.length > 300) logs.splice(300);
+    await window.storage.set(CLOUD_LOGS_KEY, JSON.stringify(logs), true);
+  } catch(e) { console.warn('addScanLog error:', e); }
+}
+
+// リアルランキング取得
+async function fetchRealRanking() {
+  try {
+    const users = await getAllCloudUsers();
+    return Object.values(users).map(u => ({
+      n: u.name, e: '🌱',
+      co2: u.totalCo2g||0, pts: u.points||0, scans: u.totalScans||0,
+      me: (u.email && u.email === S.email) || u.name === S.name
+    }));
+  } catch { return []; }
+}
+
+// ランキング描画にリアルデータを使うよう上書き
+const _origRenderRk = typeof renderRk === 'function' ? renderRk : null;
+async function renderRkReal() {
+  const realUsers = await fetchRealRanking();
+  const f = {day:1, week:7, month:30, year:365}[rkPer] || 1;
+  const sorted = [...realUsers].sort((a,b)=>b.co2-a.co2);
+  const tot = sorted.reduce((s,u)=>s+u.co2,0);
+  const perLbl = {day:'今日',week:'今週',month:'今月',year:'今年'}[rkPer];
+
+  const tmVal = document.getElementById('tm-val');
+  const tmSub = document.getElementById('tm-sub');
+  if(tmVal) tmVal.innerHTML = Math.round(tot).toLocaleString() + '<span style="font-size:17px;font-weight:600;vertical-align:super;margin-left:2px">g</span>';
+  if(tmSub) tmSub.textContent = 'みんなで ' + perLbl + ' · リアルタイム';
+
+  const top3 = sorted.slice(0,3);
+  const po = [top3[1], top3[0], top3[2]].filter(Boolean);
+  const PS = [
+    {bd:'2px solid #C0C0C0',bg:'#F5F5F5',w:52,bh:34,bb:'linear-gradient(to top,#C0C0C0,#E8E8E8)',m:'🥈'},
+    {bd:'3px solid #FFD700',bg:'#FFF9E0',w:64,bh:54,bb:'linear-gradient(to top,#FFD700,#FFE866)',m:'🥇'},
+    {bd:'2px solid #CD7F32',bg:'#FDF2E9',w:48,bh:22,bb:'linear-gradient(to top,#CD7F32,#E8A060)',m:'🥉'}
+  ];
+  const rkPod = document.getElementById('rk-pod');
+  if(rkPod) rkPod.innerHTML = po.map((r,i)=>{const s=PS[i];return`<div class="pod"><div>${s.m}</div><div class="pod-av" style="width:${s.w}px;height:${s.w}px;border:${s.bd};background:${s.bg}">${r.e}</div><div class="pod-nm">${r.n}</div><div class="pod-vl">${r.co2.toLocaleString()}g</div><div class="pod-bar" style="height:${s.bh}px;width:46px;background:${s.bb}"></div></div>`;}).join('');
+
+  const rkList = document.getElementById('rk-list');
+  if(rkList) rkList.innerHTML = sorted.length ? sorted.map((r,i)=>`<div class="rk-r${r.me?' me':''}"><div class="rk-n">${i+1}</div><div class="rk-av">${r.e}</div><div style="flex:1"><span class="rk-nm">${r.n}${r.me?'<span class="you">あなた</span>':''}</span><div style="font-size:10px;color:var(--sub)">${perLbl}</div></div><div><div class="rk-vl">${r.co2.toLocaleString()}g</div><div style="font-size:10px;color:var(--sub)">CO₂削減</div></div></div>`).join('') : '<div style="text-align:center;padding:20px;font-size:13px;color:var(--sub)">まだ参加者がいません</div>';
+}
+
+// renderRkをリアル版に上書き
+function renderRk() { renderRkReal(); }
+
+// addScan後にクラウド同期
+const _origAddScan = addScan;
+function addScan(w, q) {
+  _origAddScan(w, q);
+  const bonus = q ? 20 : 0;
+  const pts = w.p + bonus;
+  syncUserToCloud();
+  addScanLog(w, pts);
+}
+
+// 管理者機能
+function openAdmin() {
+  const pass = prompt('管理者パスワードを入力してください');
+  if (pass !== ADMIN_PASSWORD) { if(pass !== null) toast('パスワードが違います'); return; }
+  document.getElementById('admin-dashboard').style.display = 'block';
+  loadAdminData();
+}
+function closeAdmin() {
+  document.getElementById('admin-dashboard').style.display = 'none';
+}
+
+async function loadAdminData() {
+  const users = await getAllCloudUsers();
+  const r = await window.storage.get(CLOUD_LOGS_KEY, true);
+  const logs = r ? JSON.parse(r.value) : [];
+  const list = Object.values(users);
+
+  const totPts = list.reduce((s,u)=>s+(u.points||0),0);
+  const totScans = list.reduce((s,u)=>s+(u.totalScans||0),0);
+  const totCo2 = list.reduce((s,u)=>s+(u.totalCo2g||0),0);
+  const today = new Date().toLocaleDateString('ja-JP');
+  const todayActive = list.filter(u=>u.lastDate===today).length;
+
+  document.getElementById('admin-summary').innerHTML = [
+    {v:list.length, l:'参加者数', c:'#1A3D2B'},
+    {v:totScans, l:'総分別回数', c:'#2D6A4F'},
+    {v:Math.round(totCo2/1000*10)/10+'kg', l:'CO2削減量', c:'#3CB371'},
+    {v:todayActive, l:'今日アクティブ', c:'#C8902A'},
+  ].map(x=>`<div style="background:#fff;border-radius:14px;padding:14px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.05)"><div style="font-size:22px;font-weight:800;color:${x.c}">${x.v}</div><div style="font-size:11px;color:#728C7E;margin-top:3px">${x.l}</div></div>`).join('');
+
+  list.sort((a,b)=>(b.totalScans||0)-(a.totalScans||0));
+  document.getElementById('admin-users-list').innerHTML = list.length ? list.map(u=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f4f0">
+      <div style="width:36px;height:36px;border-radius:50%;background:#E6F0EB;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🌱</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:#1A3D2B">${u.name}</div>
+        <div style="font-size:11px;color:#728C7E">${u.email||'メール未登録'}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:13px;font-weight:700;color:#3CB371">${u.totalScans||0}回</div>
+        <div style="font-size:10px;color:#728C7E">${u.lastDate===today?'本日':u.lastDate||'-'}</div>
+      </div>
+    </div>`).join('') : '<div style="text-align:center;padding:20px;font-size:13px;color:#728C7E">まだ参加者がいません</div>';
+
+  document.getElementById('admin-scan-logs').innerHTML = logs.slice(0,30).length ? logs.slice(0,30).map(l=>{
+    const d = new Date(l.time);
+    const ts = d.toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f4f0;font-size:12px">
+      <div style="flex:1;color:#1A3D2B;font-weight:500">${l.user}</div>
+      <div style="color:#728C7E">${l.emoji||''} ${l.type}</div>
+      <div style="color:#3CB371;font-weight:700">+${l.pts}pt</div>
+      <div style="color:#728C7E;min-width:68px;text-align:right">${ts}</div>
+    </div>`;
+  }).join('') : '<div style="text-align:center;padding:20px;font-size:13px;color:#728C7E">ログなし</div>';
+
+  // 7日継続率
+  const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate()-7);
+  const activeWeek = list.filter(u=>{if(!u.lastDate)return false;const d=new Date(u.lastDate.replace(/\//g,'-'));return d>=sevenDaysAgo;}).length;
+  const retention = list.length ? Math.round(activeWeek/list.length*100) : 0;
+  document.getElementById('admin-kpi').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:#E6F0EB;border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:#1A3D2B">${retention}%</div>
+        <div style="font-size:11px;color:#728C7E;margin-top:2px">7日継続率</div>
+      </div>
+      <div style="background:#E6F0EB;border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:#1A3D2B">${list.length ? Math.round(totScans/list.length*10)/10 : 0}</div>
+        <div style="font-size:11px;color:#728C7E;margin-top:2px">1人あたり分別回数</div>
+      </div>
+    </div>`;
+}
+
+// ページロード時にクラウドからユーザーデータを復元
+(async function restoreFromCloud(){
+  if(!S.registered || !S.email) return;
+  try {
+    const users = await getAllCloudUsers();
+    const key = S.email || S.name;
+    if(users[key]) {
+      // ローカルより高いポイントがあればクラウドを使用
+      if((users[key].points||0) > S.points) {
+        S.points = users[key].points;
+        sv();
+        if(typeof updH==='function') updH();
+      }
+    } else {
+      // 初回：クラウドに登録
+      await syncUserToCloud();
+    }
+  } catch(e) {}
+})();
+
 </script>
 
 </body>
