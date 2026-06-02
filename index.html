@@ -1369,17 +1369,24 @@ function saveApiKey(){
 
 // ── Gemini AI判定（Worker経由）────────────────────────────────────
 async function analyzeWithGemini(base64Image){
-  const prompt=`この画像に写っているゴミを判定してください。以下のルールに従ってJSONのみ返してください。他の文字は一切不要です。【カテゴリ】ペットボトル, アルミ缶, スチール缶, プラスチック, 紙類, ガラス瓶, 段ボール。【重要ルール】1.ゴミが写っていない・判定できない場合はcategoryを"不明"にしてください。2.ペットボトルの場合、キャップとラベルが取り外されているか確認し、取り外されていない場合はcategoryを"不明"、reasonを"キャップまたはラベルが付いています。取り外してから分別してください"にしてください。3.過去に撮影された画像や印刷物・画面の写真と判断される場合はcategoryを"不明"、reasonを"実物を撮影してください"にしてください。形式: {"category":"ペットボトル","confidence":0.95,"reason":""}`;
+  const prompt=`次の画像のゴミを判定し、JSONのみ返してください。説明文不要。【カテゴリ】ペットボトル,アルミ缶,スチール缶,プラスチック,紙類,ガラス瓶,段ボール 【ルール】1.ゴミでない・判定不能→category:"不明" 2.ペットボトルでキャップ/ラベル付き→category:"不明",reason:"キャップまたはラベルを外してください" 3.画面・印刷物撮影→category:"不明",reason:"実物を撮影してください" 例:{"category":"ペットボトル","confidence":0.95,"reason":""}`;
   const res=await fetch(`https://ecoist.takkekyupy.workers.dev/`,{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:'image/jpeg',data:base64Image}},{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:1000,responseMimeType:"application/json"}})
+    body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:'image/jpeg',data:base64Image}},{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:200}})
   });
-  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'APIエラー');}
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||'APIエラー');}
   const data=await res.json();
-  const parts=data.candidates?.[0]?.content?.parts||[];const text=parts.filter(p=>p.text).map(p=>p.text).join('')||'';
-  try{return JSON.parse(text.replace(/```json|```/g,'').trim());}catch(e){const m=text.match(/{[^}]+}/);if(m)return JSON.parse(m[0]);throw new Error('判定結果のパースに失敗しました: '+text.slice(0,100));}
+  const parts=data.candidates?.[0]?.content?.parts||[];
+  const text=parts.filter(p=>p.text).map(p=>p.text).join('').trim();
+  if(!text) throw new Error('AIから応答がありませんでした');
+  const cleaned=text.replace(/```json|```/g,'').trim();
+  try{return JSON.parse(cleaned);}catch(_){}
+  const braceStart=cleaned.indexOf('{'),braceEnd=cleaned.lastIndexOf('}');
+  if(braceStart!==-1&&braceEnd>braceStart){try{return JSON.parse(cleaned.slice(braceStart,braceEnd+1));}catch(_){}}
+  const catM=text.match(/"category"\s*:\s*"([^"]+)"/);
+  if(catM)return{category:catM[1],confidence:0.8,reason:''};
+  throw new Error('判定結果を読み取れませんでした。もう一度試してください。');
 }
-
 // ── カメラ・ライブラリ ────────────────────────────────────────
 function startScan(){
   if(scanning)return;
@@ -1398,12 +1405,16 @@ function handleLib(inp){
 }
 
 // ── 画像ハッシュ重複チェック ──
+// Setで複数の画像を記憶（ページリロードまでリセットしない）
+const usedImageHashes = new Set();
 let lastImageHash = null;
 async function getImageHash(base64) {
-  const str = base64.slice(0, 500);
+  // 先頭・中間・末尾の3箇所を組み合わせてより精度の高いハッシュを生成
+  const len = base64.length;
+  const sample = base64.slice(0,300) + base64.slice(Math.floor(len/2)-100, Math.floor(len/2)+100) + base64.slice(-300);
   let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+  for (let i = 0; i < sample.length; i++) {
+    hash = ((hash << 5) - hash) + sample.charCodeAt(i);
     hash |= 0;
   }
   return hash.toString();
@@ -1416,7 +1427,7 @@ function processImage(file){
 }
 async function doDetect(base64){
   const hash = await getImageHash(base64);
-  if(hash === lastImageHash){toast('同じ画像は使用できません。新しく撮影してください。');scanning=false;showSS('idle');return;}
+  if(usedImageHashes.has(hash)){toast('同じ画像は使用できません。新しく撮影してください。');scanning=false;showSS('idle');return;}
   lastImageHash = hash;
   try{
     let category='不明';
@@ -1453,7 +1464,7 @@ async function doDetect(base64){
 function closeErrModal(){var m=document.getElementById('err-modal');if(m)m.style.display='none';}
 function showErrModal(msg){var m=document.getElementById('err-modal');if(!m){m=document.createElement('div');m.id='err-modal';m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';m.innerHTML='<div style="background:#fff;border-radius:20px;padding:24px;width:100%;max-width:360px"><div style="font-size:16px;font-weight:700;margin-bottom:12px">⚠️ エラー詳細</div><div id="err-msg-body" style="font-size:13px;color:#444;line-height:1.7;word-break:break-all;background:#f5f5f5;border-radius:10px;padding:12px;margin-bottom:14px"></div><button onclick="closeErrModal()" style="width:100%;background:#1A3D2B;color:#fff;border-radius:12px;padding:12px;font-size:14px;font-weight:700;border:none;cursor:pointer">閉じる</button></div>';document.body.appendChild(m);}document.getElementById('err-msg-body').textContent=msg;m.style.display='flex';}
 function retake(){scanning=false;const btn=document.getElementById('scan-cam-btn');if(btn)btn.disabled=false;showSS('idle');}
-function confirmScan(){if(!curW)return;const cb=document.getElementById('r-confirm-btn');if(cb.disabled)return;cb.disabled=true;const isQ=!S.questCompleted&&curW.quest;addScan(curW,isQ);}
+function confirmScan(){if(!curW)return;const cb=document.getElementById('r-confirm-btn');if(cb.disabled)return;cb.disabled=true;if(lastImageHash)usedImageHashes.add(lastImageHash);const isQ=!S.questCompleted&&curW.quest;addScan(curW,isQ);}
 
 function addScan(w,q){
   if(S.todayScans>=SCAN_LIMIT){showSS('limit');scanning=false;return;}
