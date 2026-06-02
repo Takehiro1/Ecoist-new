@@ -687,8 +687,9 @@ input{font-family:inherit;outline:none;border:none}
   <div class="hdr"><div class="logo"><span>Eco</span>ist</div><div class="hdr-r"><button class="ico-btn" onclick="openBadgeNotif()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sub)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span class="dot" id="rk-bell-dot" style="display:none"></span></button></div></div>
   <div class="scr">
     <div style="display:flex;flex-direction:column;gap:10px;padding-top:4px">
-      <div class="cat-tabs" id="cat-tabs">
-        <button class="catb on" onclick="setRkCat('friend',this)">フレンド</button>
+
+      <div class="cat-tabs" id="cat-tabs" style="margin-bottom:2px">
+        <button class="catb on" onclick="setRkCat('all',this)">全体</button>
         <button class="catb" onclick="setRkCat('area',this)">地域</button>
         <button class="catb" onclick="setRkCat('univ',this)">大学</button>
       </div>
@@ -741,6 +742,7 @@ input{font-family:inherit;outline:none;border:none}
         </div>
       </div>
       <div class="card" style="padding:7px 14px 14px"><div class="pod-row" id="rk-pod"></div></div>
+
       <div class="card-lt" style="display:flex;align-items:center;gap:8px">
         <span style="color:var(--sub);display:flex"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
         <input type="text" placeholder="名前を検索" style="flex:1;font-size:13px;color:var(--txt);background:transparent" oninput="filterRk(this.value)">
@@ -1369,23 +1371,72 @@ function saveApiKey(){
 
 // ── Gemini AI判定（Worker経由）────────────────────────────────────
 async function analyzeWithGemini(base64Image){
-  const prompt=`次の画像のゴミを判定し、JSONのみ返してください。説明文不要。【カテゴリ】ペットボトル,アルミ缶,スチール缶,プラスチック,紙類,ガラス瓶,段ボール 【ルール】1.ゴミでない・判定不能→category:"不明" 2.ペットボトルでキャップ/ラベル付き→category:"不明",reason:"キャップまたはラベルを外してください" 3.画面・印刷物撮影→category:"不明",reason:"実物を撮影してください" 例:{"category":"ペットボトル","confidence":0.95,"reason":""}`;
-  const res=await fetch(`https://ecoist.takkekyupy.workers.dev/`,{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:'image/jpeg',data:base64Image}},{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:200}})
+  // Gemini 2.5 Flash最適化版
+  // systemInstructionで役割を固定し、userコンテンツで画像+指示を送る
+  const requestBody = {
+    system_instruction: {
+      parts: [{
+        text: `あなたはゴミ分別の専門AIです。画像に写っているゴミを以下のカテゴリに分類し、必ずJSON形式のみで回答してください。JSON以外の文字（説明文・マークダウン・コードブロック）は一切出力禁止です。
+
+【カテゴリ一覧】
+- ペットボトル（キャップ・ラベル除去済みのもののみ）
+- アルミ缶
+- スチール缶
+- プラスチック（容器・袋・トレー等）
+- 紙類（新聞・雑誌・チラシ等）
+- ガラス瓶
+- 段ボール
+- 不明（上記以外・判定不能・ゴミでない）
+
+【出力形式】
+{"category":"カテゴリ名","confidence":0.0〜1.0,"reason":"判定理由を日本語で20字以内"}`
+      }]
+    },
+    contents: [{
+      role: 'user',
+      parts: [
+        { inline_data: { mime_type: 'image/jpeg', data: base64Image } },
+        { text: `この画像のゴミを判定してください。
+
+重要ルール：
+1. ゴミが写っていない・判断できない → category: "不明"
+2. ペットボトルにキャップまたはラベルが付いている → category: "不明", reason: "キャップとラベルを外してください"
+3. 画面・印刷物・過去写真を撮影している → category: "不明", reason: "実物を直接撮影してください"
+4. 複数写っている → 最も目立つものを判定
+
+JSONのみ出力：` }
+      ]
+    }],
+    generationConfig: {
+      temperature: 0,
+      maxOutputTokens: 100,
+      responseMimeType: 'application/json'
+    }
+  };
+
+  const res = await fetch('https://ecoist.takkekyupy.workers.dev/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestBody)
   });
-  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||'APIエラー');}
-  const data=await res.json();
-  const parts=data.candidates?.[0]?.content?.parts||[];
-  const text=parts.filter(p=>p.text).map(p=>p.text).join('').trim();
+
+  if(!res.ok){
+    const e = await res.json().catch(()=>({}));
+    throw new Error(e.error?.message || 'APIエラー: ' + res.status);
+  }
+
+  const data = await res.json();
+
+  // Gemini 2.5のレスポンス解析
+  const parts = data.candidates?.[0]?.content?.parts || [];
+  const text = parts.filter(p => p.text).map(p => p.text).join('').trim();
   if(!text) throw new Error('AIから応答がありませんでした');
-  const cleaned=text.replace(/```json|```/g,'').trim();
-  try{return JSON.parse(cleaned);}catch(_){}
-  const braceStart=cleaned.indexOf('{'),braceEnd=cleaned.lastIndexOf('}');
-  if(braceStart!==-1&&braceEnd>braceStart){try{return JSON.parse(cleaned.slice(braceStart,braceEnd+1));}catch(_){}}
-  const catM=text.match(/"category"\s*:\s*"([^"]+)"/);
-  if(catM)return{category:catM[1],confidence:0.8,reason:''};
-  throw new Error('判定結果を読み取れませんでした。もう一度試してください。');
+
+  const cleaned = text.replace(/```json|```/g, '').trim();
+  try { return JSON.parse(cleaned); } catch(_) {}
+  const s = cleaned.indexOf('{'), e2 = cleaned.lastIndexOf('}');
+  if(s !== -1 && e2 > s) { try { return JSON.parse(cleaned.slice(s, e2+1)); } catch(_) {} }
+  throw new Error('判定できませんでした。もう一度撮影してください。');
 }
 // ── カメラ・ライブラリ ────────────────────────────────────────
 function startScan(){
@@ -1422,7 +1473,23 @@ async function getImageHash(base64) {
 function processImage(file){
   scanning=true;showSS('scanning');
   const reader=new FileReader();
-  reader.onload=async(e)=>{await doDetect(e.target.result.split(',')[1]);};
+  reader.onload=async(e)=>{
+    // 画像をCanvasでリサイズ・最適化してから解析
+    const img=new Image();
+    img.onload=async()=>{
+      const MAX=1024;
+      let w=img.width,h=img.height;
+      if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=Math.round(w*r);h=Math.round(h*r);}
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      const ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      // quality 0.85でJPEG圧縮
+      const dataUrl=canvas.toDataURL('image/jpeg',0.85);
+      await doDetect(dataUrl.split(',')[1]);
+    };
+    img.src=e.target.result;
+  };
   reader.readAsDataURL(file);
 }
 async function doDetect(base64){
@@ -1532,7 +1599,7 @@ const RD={
   univ:[{n:'エコ大学',e:'🏫',c:23450},{n:'みどり高校',e:'🌿',c:18760},{n:'サステナブル中',e:'🌱',c:12340},{n:'九州工業大',e:'⚙️',c:9820},{n:'福岡大（あなた）',e:'📚',c:0,me:true}]
 };
 const PERIOD_MULT={day:1,week:7,month:30,year:365};
-let rkCat='friend',rkPer='day';
+let rkCat='all',rkPer='day';
 function setRkCat(c,btn){rkCat=c;document.querySelectorAll('#cat-tabs .catb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderRk();}
 function setRkPer(p,btn){rkPer=p;document.querySelectorAll('#rk-p-tabs .ptb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderRk();}
 function updRk(){updVid();renderRk();}
@@ -2362,6 +2429,7 @@ async function syncUserToCloud() {
       name: S.name,
       email: S.email || '',
       handle: S.handle || '',
+      avatar: S.avatar || '🌱',
       points: S.points || 0,
       total_scans: S.totalScans || 0,
       total_co2g: S.totalCo2g || 0,
@@ -2403,23 +2471,44 @@ async function fetchRealRanking() {
     if (!res.ok) return [];
     const rows = await res.json();
     return rows.map(r => ({
-      n: r.name, e: '🌱',
+      n: r.name, e: r.avatar || '🌱',
       co2: r.total_co2g || 0, pts: r.points || 0, scans: r.total_scans || 0,
       me: (r.email && r.email === S.email) || r.name === S.name
     }));
   } catch { return []; }
 }
 
-// ランキング描画にリアルデータを使うよう上書き
+// ランキング描画（タブ対応版）
 const _origRenderRk = typeof renderRk === 'function' ? renderRk : null;
 async function renderRkReal() {
+  const perLbl = {day:'今日',week:'今週',month:'今月',year:'今年'}[rkPer];
+  const catLbl = {all:'全体',area:'地域',univ:'大学'}[rkCat];
+  const tmVal = document.getElementById('tm-val');
+  const tmSub = document.getElementById('tm-sub');
+  const rkPod = document.getElementById('rk-pod');
+  const rkList = document.getElementById('rk-list');
+
+  // 地域・大学タブは将来実装予定のComing Soon表示
+  if(rkCat === 'area' || rkCat === 'univ') {
+    const label = rkCat === 'area' ? '地域' : '大学';
+    const icon = rkCat === 'area' ? '🏙️' : '🎓';
+    if(tmVal) tmVal.innerHTML = '—';
+    if(tmSub) tmSub.textContent = `${catLbl}ランキング · 準備中`;
+    if(rkPod) rkPod.innerHTML = '';
+    if(rkList) rkList.innerHTML = `
+      <div style="text-align:center;padding:40px 20px;background:var(--card);border-radius:16px;box-shadow:var(--sh-sm)">
+        <div style="font-size:40px;margin-bottom:12px">${icon}</div>
+        <div style="font-size:15px;font-weight:800;color:var(--dark);margin-bottom:6px">${label}ランキング 準備中</div>
+        <div style="font-size:12px;color:var(--sub);line-height:1.7">プロフィールに${label}を登録する機能と<br>あわせて近日公開予定です</div>
+      </div>`;
+    return;
+  }
+
+  // 全体ランキング（Supabaseから取得）
   const realUsers = await fetchRealRanking();
   const sorted = [...realUsers].sort((a,b)=>b.co2-a.co2);
   const tot = sorted.reduce((s,u)=>s+u.co2,0);
-  const perLbl = {day:'今日',week:'今週',month:'今月',year:'今年'}[rkPer];
 
-  const tmVal = document.getElementById('tm-val');
-  const tmSub = document.getElementById('tm-sub');
   if(tmVal) tmVal.innerHTML = Math.round(tot).toLocaleString() + '<span style="font-size:17px;font-weight:600;vertical-align:super;margin-left:2px">g</span>';
   if(tmSub) tmSub.textContent = 'みんなで ' + perLbl + ' · リアルタイム';
 
@@ -2430,10 +2519,7 @@ async function renderRkReal() {
     {bd:'3px solid #FFD700',bg:'#FFF9E0',w:64,bh:54,bb:'linear-gradient(to top,#FFD700,#FFE866)',m:'🥇'},
     {bd:'2px solid #CD7F32',bg:'#FDF2E9',w:48,bh:22,bb:'linear-gradient(to top,#CD7F32,#E8A060)',m:'🥉'}
   ];
-  const rkPod = document.getElementById('rk-pod');
   if(rkPod) rkPod.innerHTML = po.map((r,i)=>{const s=PS[i];return`<div class="pod"><div>${s.m}</div><div class="pod-av" style="width:${s.w}px;height:${s.w}px;border:${s.bd};background:${s.bg}">${r.e}</div><div class="pod-nm">${r.n}</div><div class="pod-vl">${r.co2.toLocaleString()}g</div><div class="pod-bar" style="height:${s.bh}px;width:46px;background:${s.bb}"></div></div>`;}).join('');
-
-  const rkList = document.getElementById('rk-list');
   if(rkList) rkList.innerHTML = sorted.length ? sorted.map((r,i)=>`<div class="rk-r${r.me?' me':''}"><div class="rk-n">${i+1}</div><div class="rk-av">${r.e}</div><div style="flex:1"><span class="rk-nm">${r.n}${r.me?'<span class="you">あなた</span>':''}</span><div style="font-size:10px;color:var(--sub)">${perLbl}</div></div><div><div class="rk-vl">${r.co2.toLocaleString()}g</div><div style="font-size:10px;color:var(--sub)">CO₂削減</div></div></div>`).join('') : '<div style="text-align:center;padding:20px;font-size:13px;color:var(--sub)">まだ参加者がいません</div>';
 }
 
