@@ -1210,7 +1210,7 @@ function openAvatarPicker(){
 }
 function selectAvatarEmoji(em,el){tmpAvatar=em;tmpAvatarPhoto=null;document.querySelectorAll('.av-item').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');}
 function handleAvPhoto(inp){if(!inp.files||!inp.files[0])return;const r=new FileReader();r.onload=e=>{tmpAvatarPhoto=e.target.result;tmpAvatar=null;document.querySelectorAll('.av-item').forEach(x=>x.classList.remove('sel'));};r.readAsDataURL(inp.files[0]);inp.value='';}
-function saveAvatar(){S.avatar=tmpAvatar||S.avatar;S.avatarPhoto=tmpAvatarPhoto;sv();closeM('avatar-modal');renderAvatarInner(document.getElementById('myp-av-inner'));toast('アイコンを更新しました ✅');}
+function saveAvatar(){S.avatar=tmpAvatar||S.avatar;S.avatarPhoto=tmpAvatarPhoto;sv();closeM('avatar-modal');renderAvatarInner(document.getElementById('myp-av-inner'));toast('アイコンを更新しました ✅');syncUserToCloud();}
 
 // ══════════════════════════════════════════
 // ROUTING
@@ -1526,19 +1526,7 @@ function setRkCat(c,btn){rkCat=c;document.querySelectorAll('#cat-tabs .catb').fo
 function setRkPer(p,btn){rkPer=p;document.querySelectorAll('#rk-p-tabs .ptb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderRk();}
 function updRk(){updVid();renderRk();}
 function fc(v){return Math.round(v).toLocaleString();}
-function renderRk(){
-  const f=PERIOD_MULT[rkPer];
-  const data=RD[rkCat].map(r=>({...r,c:r.me?Math.round(S.totalCo2g*f):Math.round(r.c*f)}));
-  const sorted=[...data].sort((a,b)=>b.c-a.c);
-  const tot=data.reduce((a,x)=>a+x.c,0);
-  const perLbl={day:'今日',week:'今週',month:'今月',year:'今年'}[rkPer];
-  document.getElementById('tm-val').innerHTML=fc(tot)+'<span style="font-size:17px;font-weight:600;vertical-align:super;margin-left:2px">g</span>';
-  document.getElementById('tm-sub').textContent={friend:'フレンド',area:'地域',univ:'大学'}[rkCat]+' · '+perLbl;
-  const top3=sorted.slice(0,3);const po=[top3[1],top3[0],top3[2]].filter(Boolean);
-  const PS=[{bd:'2px solid #C0C0C0',bg:'#F5F5F5',w:52,bh:34,bb:'linear-gradient(to top,#C0C0C0,#E8E8E8)',m:'🥈'},{bd:'3px solid #FFD700',bg:'#FFF9E0',w:64,bh:54,bb:'linear-gradient(to top,#FFD700,#FFE866)',m:'🥇'},{bd:'2px solid #CD7F32',bg:'#FDF2E9',w:48,bh:22,bb:'linear-gradient(to top,#CD7F32,#E8A060)',m:'🥉'}];
-  document.getElementById('rk-pod').innerHTML=po.map((r,i)=>{const s=PS[i];return`<div class="pod"><div>${s.m}</div><div class="pod-av" style="width:${s.w}px;height:${s.w}px;border:${s.bd};background:${s.bg}">${r.e}</div><div class="pod-nm">${r.n}</div><div class="pod-vl">${fc(r.c)}g</div><div class="pod-bar" style="height:${s.bh}px;width:46px;background:${s.bb}"></div></div>`;}).join('');
-  document.getElementById('rk-list').innerHTML=sorted.map((r,i)=>`<div class="rk-r${r.me?' me':''}"><div class="rk-n">${i+1}</div><div class="rk-av">${r.e}</div><div style="flex:1"><span class="rk-nm">${r.n}${r.me?'<span class="you">あなた</span>':''}</span><div style="font-size:10px;color:var(--sub)">${perLbl}</div></div><div><div class="rk-vl">${fc(r.c)}g</div><div style="font-size:10px;color:var(--sub)">CO₂削減</div></div></div>`).join('');
-}
+function renderRk(){renderRkReal();}
 function filterRk(q){document.querySelectorAll('#rk-list .rk-r').forEach(r=>{const n=r.querySelector('.rk-nm').textContent.toLowerCase();r.style.display=q&&!n.includes(q.toLowerCase())?'none':'flex';});}
 
 function updVid(){
@@ -2437,9 +2425,6 @@ async function renderRkReal() {
   const rkList = document.getElementById('rk-list');
   if(rkList) rkList.innerHTML = sorted.length ? sorted.map((r,i)=>`<div class="rk-r${r.me?' me':''}"><div class="rk-n">${i+1}</div><div class="rk-av">${r.e}</div><div style="flex:1"><span class="rk-nm">${r.n}${r.me?'<span class="you">あなた</span>':''}</span><div style="font-size:10px;color:var(--sub)">${perLbl}</div></div><div><div class="rk-vl">${r.co2.toLocaleString()}g</div><div style="font-size:10px;color:var(--sub)">CO₂削減</div></div></div>`).join('') : '<div style="text-align:center;padding:20px;font-size:13px;color:var(--sub)">まだ参加者がいません</div>';
 }
-
-// renderRkをリアル版に上書き
-function renderRk() { renderRkReal(); }
 
 // addScan後にクラウド同期
 const _origAddScan = addScan;
