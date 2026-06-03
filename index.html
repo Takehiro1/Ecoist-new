@@ -1215,9 +1215,25 @@ let curW=null,scanning=false;
 // ══════════════════════════════════════════
 const VID_THRESHOLD=300;
 const VID_DAY_MAX=15;
-const VIDEO_BONUS_PT=6; // 通常時の動画ボーナス上限
-const FRIENDS_BASE=[150,87,63,0]; // 松茸150+公式おじさん87+める63+りさ0=300g（RD.friendと同期）
-function friendDayTotal(){return FRIENDS_BASE.reduce((a,b)=>a+b,0)+S.totalCo2g;}
+const VIDEO_BONUS_PT=6;
+
+// チーム合計CO2（Supabaseから取得したキャッシュ）
+let teamTotalCo2Cache = 0;
+
+// Supabaseから全ユーザーのCO2合計を取得してキャッシュ
+async function fetchTeamTotal() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/ecoist_users?select=total_co2g`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    teamTotalCo2Cache = rows.reduce((s, r) => s + (r.total_co2g || 0), 0);
+  } catch(e) {}
+}
+
+// チーム合計CO2（キャッシュ優先、なければ自分のみ）
+function friendDayTotal(){ return Math.max(teamTotalCo2Cache, S.totalCo2g); }
 function calcV(){return Math.max(0,Math.min(Math.floor(friendDayTotal()/VID_THRESHOLD)-(S.videoWatchCount||0),VID_DAY_MAX-(S.videoWatchCount||0)));}
 
 // ══════════════════════════════════════════
@@ -1988,6 +2004,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('screen-register').classList.remove('active');
     document.getElementById('screen-home').classList.add('active');
     initPwaBanner();
+    // チーム合計CO2を取得してホームの動画ボーナス表示に反映
+    fetchTeamTotal().then(()=>updVid());
   }
 });
 
@@ -2630,6 +2648,9 @@ async function renderRkReal() {
   const realUsers = await fetchRealRanking();
   const sorted = [...realUsers].sort((a,b)=>b.co2-a.co2);
   const tot = sorted.reduce((s,u)=>s+u.co2,0);
+  // チーム合計をキャッシュに反映→動画ボーナス表示も更新
+  teamTotalCo2Cache = tot;
+  updVid();
 
   if(tmVal) tmVal.innerHTML = Math.round(tot).toLocaleString() + '<span style="font-size:17px;font-weight:600;vertical-align:super;margin-left:2px">g</span>';
   if(tmSub) tmSub.textContent = 'みんなで ' + perLbl + ' · リアルタイム';
