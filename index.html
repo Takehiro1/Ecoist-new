@@ -575,6 +575,8 @@ input{font-family:inherit;outline:none;border:none}
           捨て先：<span id="r-bin">プラスチック容器ゴミ</span>
         </div>
       </div>
+      <div id="r-reason" style="display:none;background:#EEF4FF;border:1px solid #C5D8F5;border-radius:14px;padding:10px 14px;width:100%;font-size:12px;color:#2B5797;line-height:1.6"></div>
+      <div id="r-danger" style="display:none;background:#FFE9E9;border:2px solid #E53935;border-radius:14px;padding:12px 14px;width:100%;font-size:12.5px;font-weight:700;color:#C62828;line-height:1.6"></div>
       <div id="r-quest-msg" style="display:none;background:#FFF8E7;border:1px solid #F0C66A;border-radius:14px;padding:10px 14px;width:100%;font-size:12px;font-weight:700;color:#A37B00">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>クエスト対象！ボーナス +20pt が付与されます。
       </div>
@@ -1199,14 +1201,20 @@ let tmpAvatar=null,tmpAvatarPhoto=null;
 // SCAN ITEMS
 // ══════════════════════════════════════════
 const SCAN_LIMIT=50;
+// 福岡市プラスチック分別ルール対応カテゴリ
+// fuk: 福岡市での正しい分別先, warn: 注意メッセージ, danger: 危険物フラグ
 const WASTE=[
-  {t:'ペットボトル', e:'🧴', p:2,  c:35, wg:30,  quest:true,  bin:'プラスチック容器ゴミ'},
-  {t:'アルミ缶',    e:'🥫', p:3,  c:45, wg:15,  quest:false, bin:'缶ゴミ（資源ゴミ）'},
-  {t:'スチール缶',  e:'🫙', p:2,  c:30, wg:40,  quest:false, bin:'缶ゴミ（資源ゴミ）'},
-  {t:'プラスチック',e:'♻️', p:2,  c:25, wg:20,  quest:false, bin:'プラスチック容器ゴミ'},
-  {t:'紙類',        e:'📄', p:1,  c:18, wg:100, quest:false, bin:'紙ゴミ（資源ゴミ）'},
-  {t:'ガラス瓶',   e:'🍶', p:2,  c:22, wg:200, quest:false, bin:'びん・かん（資源ゴミ）'},
-  {t:'段ボール',   e:'📦', p:2,  c:15, wg:500, quest:false, bin:'段ボール（資源ゴミ）'},
+  {t:'ペットボトル', e:'🧴', p:2,  c:35, wg:30,  quest:true,  bin:'空きびん・ペットボトル', fuk:'空きびん・ペットボトルの日', warn:'キャップとラベルは外して「プラスチック」へ'},
+  {t:'プラスチック容器', e:'♻️', p:2,  c:25, wg:20,  quest:false, bin:'プラスチック', fuk:'プラスチックの日', warn:'軽く水洗いして汚れを落としてください'},
+  {t:'プラスチック製品', e:'🪣', p:2,  c:25, wg:50,  quest:false, bin:'プラスチック', fuk:'プラスチックの日', warn:'プラのみ・一辺50cm未満ならプラスチックへ'},
+  {t:'アルミ缶',    e:'🥫', p:3,  c:45, wg:15,  quest:false, bin:'空きびん・かん', fuk:'空きかん・ペットボトルの日'},
+  {t:'スチール缶',  e:'🫙', p:2,  c:30, wg:40,  quest:false, bin:'空きびん・かん', fuk:'空きかん・ペットボトルの日'},
+  {t:'紙類',        e:'📄', p:1,  c:18, wg:100, quest:false, bin:'紙（資源）', fuk:'古紙回収'},
+  {t:'ガラス瓶',   e:'🍶', p:2,  c:22, wg:200, quest:false, bin:'空きびん・かん', fuk:'空きびんの日'},
+  {t:'段ボール',   e:'📦', p:2,  c:15, wg:500, quest:false, bin:'段ボール（資源）', fuk:'古紙回収'},
+  {t:'燃えるごみ',  e:'🔥', p:1,  c:0,  wg:50,  quest:false, bin:'燃えるごみ', fuk:'燃えるごみの日', warn:'汚れがひどい・50cm以上・プラ以外混合のものは燃えるごみ'},
+  {t:'燃えないごみ',e:'🪨', p:1,  c:0,  wg:50,  quest:false, bin:'燃えないごみ', fuk:'燃えないごみの日', warn:'金属が多いものは燃えないごみ'},
+  {t:'危険物',     e:'⚠️', p:0,  c:0,  wg:0,   quest:false, bin:'絶対に出さないで', fuk:'絶対に通常ごみに出さないでください', danger:true, warn:'電池・ライター・注射器は発火・けがの危険。区役所等の指示に従ってください'},
 ];
 let curW=null,scanning=false;
 
@@ -1507,20 +1515,35 @@ function saveApiKey(){
 async function analyzeWithGemini(base64Image){
   const requestBody = {
     system_instruction: {
-      parts: [{ text: `あなたはゴミ分別AIです。必ずJSON形式のみで回答してください。JSON以外の文字は一切出力禁止です。
-カテゴリ: ペットボトル / アルミ缶 / スチール缶 / プラスチック / 紙類 / ガラス瓶 / 段ボール / 不明
-出力例: {"category":"ペットボトル","confidence":0.95,"reason":"透明のボトルです"}` }]
+      parts: [{ text: `あなたは福岡市のゴミ分別判定AIです。福岡市のルールに従って画像のゴミを判定し、必ずJSON形式のみで回答してください。JSON以外の文字は禁止です。
+
+【福岡市の分別カテゴリ】
+- ペットボトル: 飲料用PETボトル本体（キャップ・ラベルは別）
+- プラスチック容器: 食品トレー・カップ・パック・お菓子の袋・ラベル・キャップなどプラ製の容器包装
+- プラスチック製品: ハンガー・バケツ・くし・おもちゃ・CDケースなどプラのみの製品
+- アルミ缶 / スチール缶
+- 紙類 / ガラス瓶 / 段ボール
+- 燃えるごみ: 汚れがひどいプラ、生ゴミ、紙くず、一辺50cm以上のプラ、プラと他素材の混合品でプラが多いもの
+- 燃えないごみ: 金属が多い混合品、陶器など
+- 危険物: 電池・モバイルバッテリー・加熱式たばこ・ライター・注射器・充電式電池内蔵製品
+
+【判定の重要ルール】
+1. ペットボトル本体 → category:"ペットボトル"
+2. プラ製の容器・包装・袋・トレー → category:"プラスチック容器"
+3. プラのみでできた日用品 → category:"プラスチック製品"
+4. 電池・ライター・加熱式たばこ・モバイルバッテリーなど発火危険物 → category:"危険物"
+5. 汚れがひどい・一辺50cm以上・プラ以外混合(プラ多) → category:"燃えるごみ"
+6. 金属が多い混合品 → category:"燃えないごみ"
+7. ゴミでない・判定不能 → category:"不明"
+8. 画面・印刷物の撮影 → category:"不明", reason:"実物を直接撮影してください"
+
+出力例: {"category":"プラスチック容器","confidence":0.95,"reason":"食品トレーです"}` }]
     },
     contents: [{
       role: 'user',
       parts: [
         { inline_data: { mime_type: 'image/jpeg', data: base64Image } },
-        { text: `画像のゴミを判定してください。
-ルール:
-1. ゴミでない・判断不能 → category:"不明"
-2. ペットボトルにキャップ/ラベルあり → category:"不明", reason:"キャップとラベルを外してください"
-3. 画面・印刷物の撮影 → category:"不明", reason:"実物を直接撮影してください"
-JSONのみ出力してください。` }
+        { text: `この画像のゴミを福岡市のルールで判定してください。reasonには「なぜそのカテゴリなのか」を20字以内で簡潔に。JSONのみ出力。` }
       ]
     }],
     generationConfig: { temperature: 0, maxOutputTokens: 150 }
@@ -1634,11 +1657,37 @@ async function doDetect(base64){
     curW=WASTE.find(w=>w.t===category)||WASTE[0];
   document.getElementById('r-emoji').textContent=curW.e;
   document.getElementById('r-type').textContent=curW.t;
-  const binEl=document.getElementById('r-bin');if(binEl)binEl.textContent=curW.bin||'資源ゴミ';
+  // 福岡市の正しい分別先を表示
+  const binEl=document.getElementById('r-bin');if(binEl)binEl.textContent=curW.fuk||curW.bin||'資源ゴミ';
+  // AIの判定理由＋福岡市の注意事項を表示
+  const reasonEl=document.getElementById('r-reason');
+  if(reasonEl){
+    let msg='';
+    if(result?.reason) msg=result.reason;
+    if(curW.warn) msg=(msg?msg+'｜':'')+curW.warn;
+    reasonEl.textContent=msg;
+    reasonEl.style.display=msg?'block':'none';
+  }
+  // 危険物の場合は強い警告を表示しポイントを付与しない
+  const dangerEl=document.getElementById('r-danger');
+  if(curW.danger){
+    if(dangerEl){dangerEl.style.display='block';dangerEl.textContent='⚠️ '+(curW.warn||'危険物です。通常のごみに出さないでください。');}
+    document.getElementById('r-pts').textContent='ポイント対象外';
+    document.getElementById('r-co2').textContent='';
+    document.getElementById('r-quest-msg').style.display='none';
+    const cb=document.getElementById('r-confirm-btn');
+    cb.textContent='確認しました';cb.disabled=false;cb.onclick=function(){retake();};
+    const vb=document.getElementById('r-vid-banner');if(vb){vb.style.opacity='.3';vb.style.pointerEvents='none';}
+    showSS('result');
+    scanning=false;
+    return;
+  } else {
+    if(dangerEl)dangerEl.style.display='none';
+  }
   const isQ=!S.questCompleted&&curW.quest;
   const pts=curW.p+(isQ?20:0);
   document.getElementById('r-pts').textContent='+'+pts+'pt';
-  document.getElementById('r-co2').textContent='CO₂ '+curW.c+'g 削減';
+  document.getElementById('r-co2').textContent=curW.c>0?'CO₂ '+curW.c+'g 削減':'';
   document.getElementById('r-quest-msg').style.display=isQ?'block':'none';
   const cb=document.getElementById('r-confirm-btn');
   cb.textContent='✅ そのままポイントをもらう（+'+pts+'pt）';cb.disabled=false;cb.onclick=confirmScan;
